@@ -16,13 +16,15 @@
 #define MAX_KEYRING_LEN 236
 #define MAX_LABEL_LEN 32
 #define MAX_CERTIFICATE_LEN 64*1024 // may be adjusted
-#define MAX_PRIVATE_KEY_LEN 8*1024   // may be adjusted
-#define MAX_SUBJECT_DN_LEN 2*1024      // may be adjusted
+#define MAX_PRIVATE_KEY_LEN 8*1024  // may be adjusted
+#define MAX_SUBJECT_DN_LEN 2*1024   // may be adjusted
 #define MAX_RECORD_ID_LEN 246
+#define MAX_EXTRA_ARG_LEN 256       // may be adjusted
 
 #define GETCERT_CODE 0x01
 #define DATA_ABORT_CODE 0x03
 #define NEWRING_CODE 0x07
+#define IMPORT_CODE  0x08
 #define DELCERT_CODE 0x09
 #define DELRING_CODE 0x0A
 #define REFRESH_CODE 0x0B
@@ -37,7 +39,8 @@ typedef struct _Command_line_params {
     char userid[MAX_USERID_LEN + 1];
     char keyring[MAX_KEYRING_LEN + 1];
     char label[MAX_LABEL_LEN + 1];
-
+    char extra_arg_1[MAX_EXTRA_ARG_LEN + 1];
+    char extra_arg_2[MAX_EXTRA_ARG_LEN + 1];
 } Command_line_parms;
 
 typedef struct _R_datalib_parm_list_64 { 
@@ -133,11 +136,29 @@ typedef _Packed struct _R_datalib_data_abort {
     R_datalib_result_handle *handle;
 } R_datalib_data_abort;
 
+typedef _Packed struct _R_datalib_data_put { // DO NOT change property positions in this struct
+    int certificate_usage;
+    int Default;
+    int certificate_len;
+    int reserved_1;
+    char *certificate_ptr;
+    int private_key_len;
+    int reserved_2;
+    char *private_key_ptr;
+    int label_len;
+    int reserved_3;
+    char *label_ptr;
+    char cert_userid_len;  
+    char cert_userid[MAX_USERID_LEN];
+    char reserved_4[3];
+} R_datalib_data_put;
+
 void invoke_R_datalib(R_datalib_parm_list_64*);
 void set_up_R_datalib_parameters(R_datalib_parm_list_64* , R_datalib_function* , char* ,char* );
 void simple_action(R_datalib_parm_list_64*, void*, Command_line_parms*);
 void delcert_action(R_datalib_parm_list_64*, void*, Command_line_parms*);
 void getcert_action(R_datalib_parm_list_64*, void*, Command_line_parms*);
+void import_action(R_datalib_parm_list_64*, void*, Command_line_parms*);
 void print_help(R_datalib_parm_list_64*, void*, Command_line_parms*);
 void process_cmdline_parms(Command_line_parms*, int , char**);
 void validate_and_set_parm(char*, char*, int);

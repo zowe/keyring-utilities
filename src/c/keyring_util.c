@@ -12,6 +12,7 @@
 #include <string.h>
 #include <strings.h>
 #include <stdlib.h>
+#include <sys/stat.h>
 #include <gskcms.h>
 
 #include "keyring_types.h"
@@ -41,7 +42,8 @@ int main(int argc, char **argv)
         {"DELCERT", DELCERT_CODE, 0x00000000, 0, NULL, delcert_action},
         {"DELRING", DELRING_CODE, 0x00000000, 0, NULL, simple_action},
         {"REFRESH", REFRESH_CODE, 0x00000000, 0, NULL, simple_action},
-        {"GETCERT", GETCERT_CODE, 0x80000000, 0, NULL, getcert_action},
+        {"EXPORT",  GETCERT_CODE, 0x80000000, 0, NULL, getcert_action},
+        {"IMPORT",  IMPORT_CODE,  0x00000000, 0, NULL, import_action},
         {"HELP",    HELP_CODE,    0x00000000, 0, NULL, print_help},
         {"NOTSUPPORTED", NOTSUPPORTED_CODE, 0x00000000, 0, NULL, print_help}
     };
@@ -58,6 +60,109 @@ int main(int argc, char **argv)
         printf("Selected function is %s with code of %.2X\n", function.name, function.code);
     }
     function.action(&p, &function, &parms);
+
+    return 0;
+}
+
+void import_action(R_datalib_parm_list_64* rdatalib_parms, void * function, Command_line_parms* parms) {   
+    gsk_status rc;
+    gsk_buffer buff_in, priv_key_buff, cert_buff;
+    pkcs_cert_key cert_key;
+    pkcs_certificates CAs;
+
+    char label[MAX_LABEL_LEN + 1];
+    memset(label, 0, MAX_LABEL_LEN + 1);
+
+    R_datalib_data_put put_parm;
+    memset(&put_parm, 0x00, sizeof(R_datalib_data_put));
+    R_datalib_function *func = function;
+    func->parmlist = &put_parm;
+
+    if (load_pkcs12_file(&buff_in, /* pkcs12 file name */parms->extra_arg_1)) {
+        return;
+    }
+
+    if ((rc = gsk_decode_import_key(&buff_in, /* pkcs12 password */parms->extra_arg_2, &cert_key, &CAs)) != 0) {
+        printf("Could not read p12 file: rc = %X\n", rc);
+        return;
+    }
+
+    if ((rc = gsk_encode_private_key(&cert_key.privateKey, &priv_key_buff)) != 0) {
+        printf("Could not encode priv key: rc = %X\n", rc);
+    }
+
+    if ((rc = gsk_encode_export_certificate(&cert_key.certificate, &CAs, gskdb_export_der_binary, &cert_buff)) != 0) {
+        printf("Could not encode certificate: rc = %X\n", rc);
+        return;
+    }
+
+    strcpy(label,parms->label);
+
+    put_parm.certificate_usage = 0x80000000;
+    put_parm.Default = 0x00000000;
+    put_parm.certificate_len = cert_buff.length;
+    put_parm.certificate_ptr = cert_buff.data;
+    put_parm.private_key_len = priv_key_buff.length;
+    put_parm.private_key_ptr = priv_key_buff.data;
+    put_parm.label_len = strlen(label);
+    put_parm.label_ptr = label;
+    put_parm.cert_userid_len = 0x00;
+
+    set_up_R_datalib_parameters(rdatalib_parms, func, parms->userid, parms->keyring);
+    invoke_R_datalib(rdatalib_parms);
+    check_return_code(rdatalib_parms);
+
+    // TODO automatic refresh if needed??? 
+
+    gsk_free_buffer(&buff_in);
+    gsk_free_buffer(&priv_key_buff);
+    gsk_free_buffer(&cert_buff);
+    gsk_free_certificates(&CAs);
+    gsk_free_private_key_info(&cert_key.privateKey);
+}
+
+int load_pkcs12_file(gsk_buffer *buff_in, char *filename) {
+    FILE *stream;
+    int numread;
+    struct stat info;
+    char *buffer;
+
+    if ((stream = fopen(filename, "r")) == NULL) {
+        perror("Could not open provided pkcs12 file.");
+        return 1;
+    }
+    
+    if (stat(filename, &info) != 0) {
+        perror("stat() error");
+        return 1;
+    } 
+
+    if (S_ISREG(info.st_mode) == 0) {
+        printf("The file is not a regular file\n");
+        return 1;
+    }
+
+    buffer = (char *) malloc(info.st_size);
+
+    numread = fread(buffer, sizeof(char), info.st_size, stream);
+
+    if (numread != info.st_size) {
+        if ( ferror(stream) ) {
+            printf( "ERROR: Error reading pkcs12 file\n" );
+            return 1;
+        }
+        else if ( feof(stream)) {     
+            printf( "EOF found\n" );
+            printf( "Number of characters read %d\n", numread );
+        }
+    }
+
+    buff_in->data = buffer;
+    buff_in->length = numread;
+
+    if (fclose(stream)) {
+        printf("fclose error.\n");
+    }
 
     return 0;
 }
@@ -200,6 +305,12 @@ void process_cmdline_parms(Command_line_parms* parms, int argc, char** argv) {
                 break;
             case 4:
                 validate_and_set_parm(parms->label, argv[i], MAX_LABEL_LEN);
+                break;
+            case 5:
+                validate_and_set_parm(parms->extra_arg_1, argv[i], MAX_EXTRA_ARG_LEN);
+                break;
+            case 6:
+                validate_and_set_parm(parms->extra_arg_2, argv[i], MAX_EXTRA_ARG_LEN);
                 break;
             default:
                 printf("WARNING: %i. parameter - %s - is currently not supported and will be ignored.\n", i, argv[i]);
