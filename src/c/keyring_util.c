@@ -328,6 +328,8 @@ void print_help(R_datalib_parm_list_64* rdatalib_parms, void * function, Command
     printf("NEWRING - creates a new keyring.\n");
     printf("DELRING - deletes a keyring\n");
     printf("DELCERT - disconnects a certificate (label) from a keyring or deletes a certificate from RACF database\n");
+    printf("EXPORT  - exports a certificate from a keyring to a PEM file\n");
+    printf("IMPORT  - imports a certificate (with a private key if present) to a keyring from PKCS12 file\n");
     printf("REFRESH - refreshes DIGTCERT class\n");
     printf("HELP    - prints this help\n");
 }
