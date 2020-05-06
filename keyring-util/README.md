@@ -16,6 +16,8 @@ keyring-util function userid keyring label
  2. `userid` - an owner of the `keyring` and `label` certificate
  3. `keyring` - a name of the keyring
  4. `label` - a label of the certificate
+ 5. `extra-parm-1` - specific to a used function
+ 6. `extra-parm-2` - specific to a used function
 
 ## Functions
 
@@ -36,7 +38,18 @@ keyring-util function userid keyring label
        The following example removes `CERT03` certificate owned by the `USER01` from the RACF database. The command fails if the certificate
        is still connected to some keyring.
        * Example: `keyring-util DELCERT USER01 '*' CERT03`
-
+       
+  * `EXPORT` - exports a certificate in PEM format. The file is created in a `pwd` directory with a name of `<cert_alias>.pem`
+       * Example: `keyring-util EXPORT USER01 RING02 CERT03`
+         
+         Creates a file CERT03.pem.
+         
+  * `IMPORT` - imports a certificate from the PKCS12 format. 
+       
+       **Warning:** The scenario where a private key is also imported currently works only with RACF.
+  
+       * Example: `keyring-util IMPORT USER01 RING02 CERT03 /path/to/file.p12 pkcs12_password`
+         
   * `REFRESH` - refreshes DIGTCERT class
        * Example: `keyring-util REFRESH`
 
