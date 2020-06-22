@@ -25,8 +25,8 @@ node('ibm-jenkins-slave-nvm') {
 
   def pipeline = lib.pipelines.generic.GenericPipeline.new(this)
   pipeline.admins.add("markackert")
-
-  def packageJson = readJSON(file: 'package.json')
+    
+ /* def packageJson = readJSON(file: 'package.json')
   def version
 
   if (env.BRANCH_NAME != "master") {
@@ -35,11 +35,11 @@ node('ibm-jenkins-slave-nvm') {
   else {
       version = packageJson['version']
   }
-
+*/ 
   pipeline.setup(
       packageName: 'org.zowe.keyring-utilities',
       extraInit: {
-          pipeline.setVersion(version)
+          pipeline.setVersion("1.0.1")
       }
   )
 /* If zSS style doesn't work, manual commands
