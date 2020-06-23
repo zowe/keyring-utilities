@@ -18,6 +18,24 @@ node('ibm-jenkins-slave-nvm') {
     def lib = library("jenkins-library").org.zowe.jenkins_shared_library
 
     def pipeline = lib.pipelines.generic.GenericPipeline.new(this)
+
+    pipeline.branches.addMap([
+        [
+            name    : 'staging',
+            isProtected: true,
+            allowRelease: true,
+            allowFormalRelease: false,
+            releaseTag: 'SNAPSHOT'
+        ],
+        [
+            name    : 'master',
+            isProtected: true,
+            allowFormalRelease: true,
+            allowRelease: true,
+            releaseTag: ''
+        ]
+    ])
+
     pipeline.admins.add("markackert")
 
     pipeline.setup(
@@ -27,13 +45,13 @@ node('ibm-jenkins-slave-nvm') {
             def version
 
             // if we're not on master, SNAPSHOT
-            if (!env.BRANCH_NAME.equalsIgnoreCase("master")) {
+       /*     if (!env.BRANCH_NAME.equalsIgnoreCase("master")) {
                 version = packageJson['version'] + "-SNAPSHOT"
             }
             else {
                 version = packageJson['version']
-            }
-            pipeline.setVersion(version)
+            }*/
+            pipeline.setVersion(packageJson['version'])
         }
     )
 
@@ -53,6 +71,8 @@ node('ibm-jenkins-slave-nvm') {
             '.pax/keyring-util',
         ]
     )
+
+    pipeline.release()
 
     pipeline.end()
 
