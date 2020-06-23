@@ -31,4 +31,4 @@ cd "$SCRIPT_DIR"
 
 mv content bk/
 mkdir -p content
-cp bk/keyring-util/keyring-util content
+cp bk/keyring-util/keyring-util content/

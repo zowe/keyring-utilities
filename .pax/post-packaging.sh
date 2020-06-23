@@ -21,4 +21,4 @@ echo "$SCRIPT_NAME building keyring ..."
 
 cd "$SCRIPT_DIR"
 
-cp bk/keyring-util/keyring-util content/
+cp bk/keyring-util/keyring-util .
