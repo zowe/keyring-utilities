@@ -22,6 +22,6 @@ export PYTHON_HOME=/usr/lpp/IBM/izoda/anaconda
 export PATH=$PATH:$PYTHON_HOME/bin
 export LIBPATH=$LIBPATH:$PYTHON_HOME/lib
 
-cd content
+cd content/keyring-util
 
-. ./keyring-util/build.sh
+. ./build.sh
