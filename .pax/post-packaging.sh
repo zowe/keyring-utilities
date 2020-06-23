@@ -18,17 +18,7 @@ SCRIPT_DIR=$(pwd)
 
 # build
 echo "$SCRIPT_NAME building keyring ..."
-export PYTHON_HOME=/usr/lpp/IBM/izoda/anaconda
-export PATH=$PATH:$PYTHON_HOME/bin
-export LIBPATH=$LIBPATH:$PYTHON_HOME/lib
 
-cd content/keyring-util
-
-. ./build.sh
-
-# cleanup build results
 cd "$SCRIPT_DIR"
 
-mv content bk/
-mkdir -p content
 cp bk/keyring-util/keyring-util content

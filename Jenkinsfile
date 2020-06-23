@@ -87,13 +87,13 @@ EOF"""
     )
 
     // define we need packaging stage, which processed in .pax folder
-    pipeline.packaging(name: 'keyring', paxOptions: '')
+    pipeline.packaging(name: 'keyring', extraFiles: 'keyring-util')
 
     // define we need publish stage
     pipeline.publish(
         allowPublishWithoutTest: true,
         artifacts: [
-            '.pax/keyring.pax',
+            '.pax/keyring-util',
         ]
     )
 
