@@ -21,7 +21,8 @@ echo "$SCRIPT_NAME building keyring ..."
 
 ls -lask
 
-cd ascii
+cd content
+ls -lask
 
 npm install
 
