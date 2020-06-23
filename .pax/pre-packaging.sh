@@ -18,11 +18,11 @@ SCRIPT_DIR=$(pwd)
 
 # build
 echo "$SCRIPT_NAME building keyring ..."
-
-ls -lask
+export PYTHON_HOME=/usr/lpp/IBM/izoda/anaconda
+export PATH=$PATH:$PYTHON_HOME/bin
+export LIBPATH=$LIBPATH:$PYTHON_HOME/lib
 
 cd content
-ls -lask
 
 npm install
 
