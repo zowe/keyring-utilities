@@ -19,6 +19,10 @@ SCRIPT_DIR=$(pwd)
 # build
 echo "$SCRIPT_NAME building keyring ..."
 
+ls -lask
+
+cd ascii
+
 npm install
 
 npm run prebuild
