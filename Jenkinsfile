@@ -26,7 +26,8 @@ node('ibm-jenkins-slave-nvm') {
             def packageJson = readJSON(file: 'package.json')
             def version
 
-            if (env.BRANCH_NAME != "master") {
+            // if we're not on master, SNAPSHOT
+            if (!env.BRANCH_NAME.equalsIgnoreCase("master")) {
                 version = packageJson['version'] + "-SNAPSHOT"
             }
             else {
