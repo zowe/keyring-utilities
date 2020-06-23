@@ -24,6 +24,4 @@ export LIBPATH=$LIBPATH:$PYTHON_HOME/lib
 
 cd content
 
-npm install
-
-npm run prebuild
+. ./keyring-util/build.sh
