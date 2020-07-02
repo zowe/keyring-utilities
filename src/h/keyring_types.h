@@ -8,8 +8,12 @@
 * Copyright Contributors to the Zowe Project.                                     *
 */
 
+
 #ifndef _keyring_types
 #define _keyring_types
+
+#include <gskcms.h>
+
 
 #define MAX_FUNCTION_LEN 16          // may be adjusted
 #define MAX_USERID_LEN 8
@@ -165,5 +169,6 @@ void validate_and_set_parm(char*, char*, int);
 void check_return_code(R_datalib_parm_list_64*);
 void dump_certificate_and_key(Data_get_buffers*);
 void write_to_file(char*, char*, int, int);
+int load_pkcs12_file(gsk_buffer*, char*);
 
 #endif
