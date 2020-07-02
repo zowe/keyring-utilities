@@ -36,7 +36,7 @@ node('ibm-jenkins-slave-nvm') {
         ]
     ])
 
-    pipeline.admins.add("markackert")
+    pipeline.admins.add("markackert", "Vit")
 
     pipeline.setup(
         packageName: 'org.zowe.keyring-utilities',
