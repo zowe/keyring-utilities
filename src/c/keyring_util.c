@@ -8,6 +8,8 @@
 * Copyright Contributors to the Zowe Project.                                     *
 */
 
+#define  _XOPEN_SOURCE_EXTENDED 1
+
 #include <stdio.h>
 #include <string.h>
 #include <strings.h>
@@ -106,7 +108,8 @@ void import_action(R_datalib_parm_list_64* rdatalib_parms, void * function, Comm
     put_parm.private_key_ptr = priv_key_buff.data;
     put_parm.label_len = strlen(label);
     put_parm.label_ptr = label;
-    put_parm.cert_userid_len = 0x00;
+    put_parm.cert_userid_len = strlen(parms->userid);
+    memcpy(put_parm.cert_userid, parms->userid, put_parm.cert_userid_len);
 
     set_up_R_datalib_parameters(rdatalib_parms, func, parms->userid, parms->keyring);
     invoke_R_datalib(rdatalib_parms);
@@ -211,7 +214,8 @@ void delcert_action(R_datalib_parm_list_64* rdatalib_parms, void * function, Com
     }
     rem_parm.label_len = strlen(parms->label);
     rem_parm.label_addr = parms->label;
-    rem_parm.CERT_userid_len = 0x00;
+    rem_parm.CERT_userid_len = strlen(parms->userid);
+    memcpy(rem_parm.CERT_userid, parms->userid, rem_parm.CERT_userid_len);
 
     set_up_R_datalib_parameters(rdatalib_parms, func, parms->userid, parms->keyring);
     invoke_R_datalib(rdatalib_parms);
