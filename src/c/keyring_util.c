@@ -109,6 +109,7 @@ void import_action(R_datalib_parm_list_64* rdatalib_parms, void * function, Comm
     put_parm.label_len = strlen(label);
     put_parm.label_ptr = label;
     put_parm.cert_userid_len = strlen(parms->userid);
+    memset(put_parm.cert_userid, ' ', MAX_USERID_LEN); // fill the cert_userid field with blanks
     memcpy(put_parm.cert_userid, parms->userid, put_parm.cert_userid_len);
 
     set_up_R_datalib_parameters(rdatalib_parms, func, parms->userid, parms->keyring);
@@ -215,6 +216,7 @@ void delcert_action(R_datalib_parm_list_64* rdatalib_parms, void * function, Com
     rem_parm.label_len = strlen(parms->label);
     rem_parm.label_addr = parms->label;
     rem_parm.CERT_userid_len = strlen(parms->userid);
+    memset(rem_parm.CERT_userid, ' ', MAX_USERID_LEN); // fill the CERT_userid field with blanks
     memcpy(rem_parm.CERT_userid, parms->userid, rem_parm.CERT_userid_len);
 
     set_up_R_datalib_parameters(rdatalib_parms, func, parms->userid, parms->keyring);
