@@ -21,5 +21,22 @@ In this case, you don't need the C/C++ toolchain for building native addons.
 ### Example and usage
 See the [example.js](./example.js) file to see how the addon is used and how to test its functionality.
 
+### Notes
+After installing the keyring_js package using `npm install keyring_js` make sure that installed files in the `node_modules/keyring_js/` are tagged as ASCII files.
+For example, you should see:
+```
+$: >ls -T node_modules/keyring_js/
+t ISO8859-1   T=on  LICENSE
+t ISO8859-1   T=on  README.md
+t ISO8859-1   T=on  binding.gyp
+t ISO8859-1   T=on  example.js
+t ISO8859-1   T=on  index.js
+t ISO8859-1   T=on  keyring_js.c
+t ISO8859-1   T=on  package.json
+                    prebuilds
+                    src
+
+```
+
 ## keyring-util tool
 See [README.md](./keyring-util/README.md)
