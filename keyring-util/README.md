@@ -16,8 +16,9 @@ keyring-util function userid keyring label
  2. `userid` - an owner of the `keyring` and `label` certificate
  3. `keyring` - a name of the keyring
  4. `label` - a label of the certificate
- 5. `extra-parm-1` - specific to a used function
- 6. `extra-parm-2` - specific to a used function
+ 5. `extra-parm-0` - specific to a used function
+ 6. `extra-parm-1` - specific to a used function
+ 7. `extra-parm-2` - specific to a used function
 
 ## Functions
 
@@ -44,11 +45,11 @@ keyring-util function userid keyring label
          
          Creates a file CERT03.pem.
          
-  * `IMPORT` - imports a certificate from the PKCS12 format. 
+  * `IMPORT` - imports a certificate from the PKCS12 format. The certificate can be connected to a keyring as `PERSONAL` or `CERTAUTH`.
        
        **Warning:** The scenario where a private key is also imported currently works only with RACF.
   
-       * Example: `keyring-util IMPORT USER01 RING02 CERT03 /path/to/file.p12 pkcs12_password`
+       * Example: `keyring-util IMPORT USER01 RING02 CERT03 PERSONAL /path/to/file.p12 pkcs12_password`
          
   * `REFRESH` - refreshes DIGTCERT class
        * Example: `keyring-util REFRESH`

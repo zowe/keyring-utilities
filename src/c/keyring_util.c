@@ -100,7 +100,15 @@ void import_action(R_datalib_parm_list_64* rdatalib_parms, void * function, Comm
 
     strcpy(label,parms->label);
 
-    put_parm.certificate_usage = 0x80000000;
+    if (strcasecmp(parms->extra_arg_0,"PERSONAL") == 0) {
+        put_parm.certificate_usage = 0x00000008;
+    } else if (strcasecmp(parms->extra_arg_0,"CERTAUTH") == 0) {
+        put_parm.certificate_usage = 0x00000002;
+    } else {
+        printf("ERROR: '%s' parameter is invalid. Use CERTAUTH or PERSONAL.\n", parms->extra_arg_0);
+        exit(1);
+    }
+
     put_parm.Default = 0x00000000;
     put_parm.certificate_len = cert_buff.length;
     put_parm.certificate_ptr = cert_buff.data;
@@ -313,9 +321,12 @@ void process_cmdline_parms(Command_line_parms* parms, int argc, char** argv) {
                 validate_and_set_parm(parms->label, argv[i], MAX_LABEL_LEN);
                 break;
             case 5:
-                validate_and_set_parm(parms->extra_arg_1, argv[i], MAX_EXTRA_ARG_LEN);
+                validate_and_set_parm(parms->extra_arg_0, argv[i], MAX_EXTRA_ARG_LEN);
                 break;
             case 6:
+                validate_and_set_parm(parms->extra_arg_1, argv[i], MAX_EXTRA_ARG_LEN);
+                break;
+            case 7:
                 validate_and_set_parm(parms->extra_arg_2, argv[i], MAX_EXTRA_ARG_LEN);
                 break;
             default:
