@@ -1,6 +1,6 @@
 {
   "name": "keyring_js",
-  "version": "1.0.4",
+  "version": "1.0.5",
   "description": "z/OS RACF keyring addon",
   "keywords": [
     "os390",
