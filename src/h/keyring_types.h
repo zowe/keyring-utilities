@@ -43,6 +43,7 @@ typedef struct _Command_line_params {
     char userid[MAX_USERID_LEN + 1];
     char keyring[MAX_KEYRING_LEN + 1];
     char label[MAX_LABEL_LEN + 1];
+    char extra_arg_0[MAX_EXTRA_ARG_LEN + 1];
     char extra_arg_1[MAX_EXTRA_ARG_LEN + 1];
     char extra_arg_2[MAX_EXTRA_ARG_LEN + 1];
 } Command_line_parms;
