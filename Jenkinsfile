@@ -13,7 +13,7 @@
 
 
 
-node('ibm-jenkins-slave-nvm') {
+node('zowe-jenkins-agent') {
 
     def lib = library("jenkins-library").org.zowe.jenkins_shared_library
 
