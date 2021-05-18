@@ -12,6 +12,12 @@ var binding = require('node-gyp-build')(__dirname);
 
 module.exports.getDerEncodedData = getDerEncodedData
 module.exports.getPemEncodedData = getPemEncodedData
+module.exports.listKeyring = listKeyring
+
+function listKeyring(userid, keyring){
+  return binding.listKeyring(userid, keyring);
+}
+
 
 function getDerEncodedData(userid, keyring, label) {
     return binding.getData(userid, keyring, label, "der");

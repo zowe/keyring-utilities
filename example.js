@@ -12,6 +12,13 @@ const keyring = require('./');
 const https = require('https');
 const os = require('os');
 
+results = keyring.listKeyring("USERID", "Keyring");
+
+let certificate;
+for (const item of results) {
+  console.log(item);
+}
+
 // const data_der = keyring.getDerEncodedData("USERID", "Keyring", "Cert_label");
 
 const data_pem = keyring.getPemEncodedData("USERID", "Keyring", "Cert_label");
