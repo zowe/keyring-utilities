@@ -26,6 +26,11 @@
 #define LIST_KEYRING_NUM_ARG 2
 #define MAX_FORMAT_LEN 3
 
+#define BEGINCERT "-----BEGIN CERTIFICATE-----\n"
+#define ENDCERT "-----END CERTIFICATE-----"
+#define BEGINPRIVKEY "-----BEGIN PRIVATE KEY-----\n"
+#define ENDPRIVKEY "-----END PRIVATE KEY-----"
+
 #define CHECK(expr) \
   { \
     if ((expr) == 0) { \
@@ -36,7 +41,7 @@
   }
 
 int validateAndExtractString(napi_env, char*, napi_value, int, char*);
-int encode_base64_and_create_napi_string(napi_env, char *, int , napi_value *);
+int encode_base64_and_create_napi_string(napi_env, char *, int , napi_value *, char *, char *);
 
 void throwRdatalibException(napi_env env, int function, int safRC, int racfRC, int racfRSN ) {
   char err_msg[256];
@@ -46,6 +51,7 @@ void throwRdatalibException(napi_env env, int function, int safRC, int racfRC, i
   napi_throw_type_error(env, NULL, err_msg);
 }
 
+// Entry point to the getData() function
 napi_value GetData(napi_env env, napi_callback_info info) {
   napi_status status;
   napi_value args[GET_DATA_NUM_ARG], dataobj, buffer_cert, buffer_key;
@@ -103,11 +109,11 @@ napi_value GetData(napi_env env, napi_callback_info info) {
     CHECK(napi_create_arraybuffer(env, buffers.private_key_length, &underlying_buf_key, &buffer_key) == napi_ok);
     memcpy(underlying_buf_key, buffers.private_key, buffers.private_key_length);
   }
-  else if ( ! strcasecmp(format, "b64")) {
-    if (encode_base64_and_create_napi_string(env, buffers.certificate, buffers.certificate_length, &buffer_cert)) {
+  else if ( ! strcasecmp(format, "pem")) {
+    if (encode_base64_and_create_napi_string(env, buffers.certificate, buffers.certificate_length, &buffer_cert, BEGINCERT, ENDCERT)) {
       return NULL;
     }
-    if (encode_base64_and_create_napi_string(env, buffers.private_key, buffers.private_key_length, &buffer_key)) {
+    if (encode_base64_and_create_napi_string(env, buffers.private_key, buffers.private_key_length, &buffer_key, BEGINPRIVKEY, ENDPRIVKEY)) {
       return NULL;
     }
   } else {
@@ -137,6 +143,7 @@ int lengthWithoutTralingSpaces(char *str, int maxlen) {
   return end - str + 1;
 }
 
+// Add an element with cert information to the nodejs array
 void addCertItem(napi_env env, napi_value *array, R_datalib_data_get *getParm, int index) {
   napi_value element, string, isDefault;
   char *str;
@@ -188,12 +195,14 @@ void addCertItem(napi_env env, napi_value *array, R_datalib_data_get *getParm, i
   }
   CHECK(napi_set_named_property(env, element, "default", isDefault) == napi_ok);
 
+  encode_base64_and_create_napi_string(env, getParm->certificate_ptr, getParm->certificate_len, &string, BEGINCERT, ENDCERT);
+  CHECK(napi_set_named_property(env, element, "pem", string) == napi_ok);
 
   CHECK(napi_set_element(env, *array, index, element) == napi_ok);
 
 }
 
-
+// Query keyring information using R_datalib API
 int getKeyringContent(napi_env env, napi_value *array, char *userid, char *keyring) {
   int origMode;
   int rc = 0;
@@ -262,6 +271,7 @@ int getKeyringContent(napi_env env, napi_value *array, char *userid, char *keyri
   return rc;
 }
 
+// Entry point to the listKeyring() function
 napi_value ListKeyring(napi_env env, napi_callback_info info) {
   napi_status status;
   napi_value args[LIST_KEYRING_NUM_ARG], array;
@@ -294,7 +304,7 @@ napi_value ListKeyring(napi_env env, napi_callback_info info) {
   return array;
 }
 
-int encode_base64_and_create_napi_string(napi_env env, char *buffer, int length, napi_value *value) {
+int encode_base64_and_create_napi_string(napi_env env, char *buffer, int length, napi_value *value, char *header, char *footer) {
   napi_status status;
   gsk_buffer buf_in = {length, buffer};
   gsk_buffer buf_out = {0, 0};
@@ -304,12 +314,19 @@ int encode_base64_and_create_napi_string(napi_env env, char *buffer, int length,
     return 1;
   }
   __e2a_l(buf_out.data,buf_out.length);
-  CHECK(napi_create_string_latin1(env, buf_out.data, buf_out.length, value) == napi_ok);
+
+  char pem[buf_out.length + strlen(header) + strlen(footer)];
+  memcpy(pem, header, strlen(header));
+  memcpy((char *)pem + strlen(header), buf_out.data, buf_out.length);
+  memcpy((char *)pem + strlen(header) + buf_out.length, footer, strlen(footer));
+
+  CHECK(napi_create_string_latin1(env, pem, sizeof(pem), value) == napi_ok);
   gsk_free_buffer(&buf_out);
 
   return 0;
 }
 
+// Validate an input parameter and turn it into the C string
 int validateAndExtractString(napi_env env, char *dest, napi_value src, int length, char *location) {
   napi_valuetype valuetype;
   napi_status status;
