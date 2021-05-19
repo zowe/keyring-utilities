@@ -42,9 +42,11 @@ for (const item of results) {
 
 
 /*
- * Get CA chain of a certificate.
+ * Try to get CA chain of a certificate. The function does not check if the CA chain is complete and so
+ * it may return incomplete CA chain. If the certificate is self-signed the returned array is empty.
  *
- * returns an array of objects representing CA chain of the certificate in a keyring:
+ * An exception is thrown if the Cert_label does not exist in the keyring.
+ * Returns an array of objects representing CA chain of the certificate in a keyring:
  * 
  * [
  *   {

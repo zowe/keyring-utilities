@@ -48,7 +48,7 @@ void throwRdatalibException(napi_env env, int function, int safRC, int racfRC, i
   memset(err_msg,0,256);
   sprintf(err_msg, "R_datalib call failed: function code: %.2X, SAF rc: %d, RACF rc: %d, RACF rsn: %d\n",
       function, safRC, racfRC, racfRSN);
-  napi_throw_type_error(env, NULL, err_msg);
+  napi_throw_error(env, NULL, err_msg);
 }
 
 // Entry point to the getData() function

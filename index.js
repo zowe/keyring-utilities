@@ -29,7 +29,7 @@ function getCAchain(userid, keyring, label) {
   }
 
   if (certObject == undefined)
-    return caList;
+    throw Error('The ' + label + ' certificate is not found in the ' + userid + '/' + keyring + ' keyring');
 
   certToCheck = new X509(certObject.pem);
   issuer = certToCheck.getIssuer().str;
