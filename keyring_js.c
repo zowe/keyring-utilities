@@ -131,7 +131,7 @@ void resetGetParm(R_datalib_data_get *getParm) {
 
 int lengthWithoutTralingSpaces(char *str, int maxlen) {
   char *end = str + maxlen - 1;
-  while (end >= str && isspace((unsigned char)*end)) end--;
+  while (end >= str && *end == 0x40) end--;
   return end - str + 1;
 }
 
@@ -139,6 +139,9 @@ int lengthWithoutTralingSpaces(char *str, int maxlen) {
 void addCertItem(napi_env env, napi_value *array, R_datalib_data_get *getParm, int index) {
   napi_value element, string, isDefault;
   char *str;
+  int certUserLen;
+
+  certUserLen = lengthWithoutTralingSpaces(getParm->cert_userid, 8);
 
   __e2a_l(getParm->label_ptr, getParm->label_len);
   __e2a_l(getParm->cert_userid, getParm->cert_userid_len);
@@ -148,7 +151,7 @@ void addCertItem(napi_env env, napi_value *array, R_datalib_data_get *getParm, i
   assert(napi_create_string_latin1(env, getParm->label_ptr, getParm->label_len, &string) == napi_ok);
   assert(napi_set_named_property(env, element, "label", string) == napi_ok);
 
-  assert(napi_create_string_latin1(env, getParm->cert_userid, lengthWithoutTralingSpaces(getParm->cert_userid, 8), &string) == napi_ok);
+  assert(napi_create_string_latin1(env, getParm->cert_userid, certUserLen, &string) == napi_ok);
   assert(napi_set_named_property(env, element, "owner", string) == napi_ok);
 
   switch (getParm->certificate_usage) {
