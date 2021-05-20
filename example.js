@@ -16,7 +16,7 @@ const os = require('os');
 /*
  * Get keyring content.
  *
- * returns an array of objects representing certificates in a keyring:
+ * returns an array of objects representing certificates in a keyring, for example:
  * 
  * [
  *   {
@@ -39,32 +39,6 @@ let certificate;
 for (const item of results) {
   console.log(item);
 }
-
-
-/*
- * Try to get CA chain of a certificate. The function does not check if the CA chain is complete and so
- * it may return incomplete CA chain. If the certificate is self-signed the returned array is empty.
- *
- * An exception is thrown if the Cert_label does not exist in the keyring.
- * Returns an array of objects representing CA chain of the certificate in a keyring:
- * 
- * [
- *   {
- *     label: 'cert_label',
- *     owner: 'CERTAUTH',
- *     usage: 'CERTAUTH',
- *     status: 'TRUST',
- *     default: false,
- *     pem: '-----BEGIN CERTIFICATE-----\n' +
- *           certificate content in base64
- *          '-----END CERTIFICATE-----'
- *   },
- *   ...
- * ]
- */
-CAChain = keyring.getCAchain("USERID", "Keyring", "Cert_label");
-console.log("CA chain of the certificate: ");
-console.log(CAChain);
 
 
 /*

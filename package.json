@@ -11,8 +11,7 @@
   ],
   "main": "index.js",
   "dependencies": {
-    "node-gyp-build": "^4.2.1",
-    "jsrsasign": "10.2.0"
+    "node-gyp-build": "^4.2.1"
   },
   "devDependencies": {
     "prebuildify": "^4.0.0"
