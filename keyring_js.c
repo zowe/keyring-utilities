@@ -31,14 +31,6 @@
 #define BEGINPRIVKEY "-----BEGIN PRIVATE KEY-----\n"
 #define ENDPRIVKEY "-----END PRIVATE KEY-----"
 
-#define CHECK(expr) \
-  { \
-    if ((expr) == 0) { \
-      fprintf(stderr, "%s:%d: failed assertion `%s'\n", __FILE__, __LINE__, #expr); \
-      fflush(stderr); \
-      abort(); \
-    } \
-  }
 
 int validateAndExtractString(napi_env, char*, napi_value, int, char*);
 int encode_base64_and_create_napi_string(napi_env, char *, int , napi_value *, char *, char *);
@@ -64,7 +56,7 @@ napi_value GetData(napi_env env, napi_callback_info info) {
 
 
   size_t argc = GET_DATA_NUM_ARG;
-  CHECK(napi_get_cb_info(env, info, &argc, args, NULL, NULL) == napi_ok);
+  assert(napi_get_cb_info(env, info, &argc, args, NULL, NULL) == napi_ok);
 
   if (argc != GET_DATA_NUM_ARG) {
     napi_throw_type_error(env, NULL,
@@ -103,10 +95,10 @@ napi_value GetData(napi_env env, napi_callback_info info) {
   }
 
   if ( ! strcasecmp(format, "der")) {
-    CHECK(napi_create_arraybuffer(env, buffers.certificate_length, &underlying_buf_cert, &buffer_cert) == napi_ok);
+    assert(napi_create_arraybuffer(env, buffers.certificate_length, &underlying_buf_cert, &buffer_cert) == napi_ok);
     memcpy(underlying_buf_cert, buffers.certificate, buffers.certificate_length);
 
-    CHECK(napi_create_arraybuffer(env, buffers.private_key_length, &underlying_buf_key, &buffer_key) == napi_ok);
+    assert(napi_create_arraybuffer(env, buffers.private_key_length, &underlying_buf_key, &buffer_key) == napi_ok);
     memcpy(underlying_buf_key, buffers.private_key, buffers.private_key_length);
   }
   else if ( ! strcasecmp(format, "pem")) {
@@ -121,9 +113,9 @@ napi_value GetData(napi_env env, napi_callback_info info) {
     return NULL;
   }
 
-  CHECK(napi_create_object(env, &dataobj) == napi_ok);
-  CHECK(napi_set_named_property(env, dataobj, "certificate", buffer_cert) == napi_ok);
-  CHECK(napi_set_named_property(env, dataobj, "key", buffer_key) == napi_ok);
+  assert(napi_create_object(env, &dataobj) == napi_ok);
+  assert(napi_set_named_property(env, dataobj, "certificate", buffer_cert) == napi_ok);
+  assert(napi_set_named_property(env, dataobj, "key", buffer_key) == napi_ok);
 
   return dataobj;
 }
@@ -151,13 +143,13 @@ void addCertItem(napi_env env, napi_value *array, R_datalib_data_get *getParm, i
   __e2a_l(getParm->label_ptr, getParm->label_len);
   __e2a_l(getParm->cert_userid, getParm->cert_userid_len);
 
-  CHECK(napi_create_object(env, &element) == napi_ok);
+  assert(napi_create_object(env, &element) == napi_ok);
 
-  CHECK(napi_create_string_latin1(env, getParm->label_ptr, getParm->label_len, &string) == napi_ok);
-  CHECK(napi_set_named_property(env, element, "label", string) == napi_ok);
+  assert(napi_create_string_latin1(env, getParm->label_ptr, getParm->label_len, &string) == napi_ok);
+  assert(napi_set_named_property(env, element, "label", string) == napi_ok);
 
-  CHECK(napi_create_string_latin1(env, getParm->cert_userid, lengthWithoutTralingSpaces(getParm->cert_userid, 8), &string) == napi_ok);
-  CHECK(napi_set_named_property(env, element, "owner", string) == napi_ok);
+  assert(napi_create_string_latin1(env, getParm->cert_userid, lengthWithoutTralingSpaces(getParm->cert_userid, 8), &string) == napi_ok);
+  assert(napi_set_named_property(env, element, "owner", string) == napi_ok);
 
   switch (getParm->certificate_usage) {
     case 0x00000008:
@@ -169,8 +161,8 @@ void addCertItem(napi_env env, napi_value *array, R_datalib_data_get *getParm, i
     default:
       str = "OTHER";
   }
-  CHECK(napi_create_string_latin1(env, str, strlen(str), &string) == napi_ok)
-  CHECK(napi_set_named_property(env, element, "usage", string) == napi_ok);
+  assert(napi_create_string_latin1(env, str, strlen(str), &string) == napi_ok);
+  assert(napi_set_named_property(env, element, "usage", string) == napi_ok);
 
   switch (getParm->certificate_status) {
     case 0x80000000:
@@ -185,20 +177,20 @@ void addCertItem(napi_env env, napi_value *array, R_datalib_data_get *getParm, i
     default:
       str = "UNKNOWN";
   }
-  CHECK(napi_create_string_latin1(env, str, strlen(str), &string) == napi_ok);
-  CHECK(napi_set_named_property(env, element, "status", string) == napi_ok);
+  assert(napi_create_string_latin1(env, str, strlen(str), &string) == napi_ok);
+  assert(napi_set_named_property(env, element, "status", string) == napi_ok);
 
   if (getParm->Default == 0) {
-    CHECK(napi_get_boolean(env, 0, &isDefault) == napi_ok);
+    assert(napi_get_boolean(env, 0, &isDefault) == napi_ok);
   } else {
-    CHECK(napi_get_boolean(env, 1, &isDefault) == napi_ok);
+    assert(napi_get_boolean(env, 1, &isDefault) == napi_ok);
   }
-  CHECK(napi_set_named_property(env, element, "default", isDefault) == napi_ok);
+  assert(napi_set_named_property(env, element, "default", isDefault) == napi_ok);
 
   encode_base64_and_create_napi_string(env, getParm->certificate_ptr, getParm->certificate_len, &string, BEGINCERT, ENDCERT);
-  CHECK(napi_set_named_property(env, element, "pem", string) == napi_ok);
+  assert(napi_set_named_property(env, element, "pem", string) == napi_ok);
 
-  CHECK(napi_set_element(env, *array, index, element) == napi_ok);
+  assert(napi_set_element(env, *array, index, element) == napi_ok);
 
 }
 
@@ -280,7 +272,7 @@ napi_value ListKeyring(napi_env env, napi_callback_info info) {
   char keyring[MAX_KEYRING_LEN + 1];
 
   size_t argc = LIST_KEYRING_NUM_ARG;
-  CHECK(napi_get_cb_info(env, info, &argc, args, NULL, NULL) == napi_ok);
+  assert(napi_get_cb_info(env, info, &argc, args, NULL, NULL) == napi_ok);
 
   if (argc != LIST_KEYRING_NUM_ARG) {
     napi_throw_type_error(env, NULL,
@@ -295,7 +287,7 @@ napi_value ListKeyring(napi_env env, napi_callback_info info) {
     return NULL;
   }
 
-  CHECK(napi_create_array(env, &array) == napi_ok);
+  assert(napi_create_array(env, &array) == napi_ok);
 
   if (getKeyringContent(env, &array, userid, keyring) != 0) {
     return NULL;
@@ -320,7 +312,7 @@ int encode_base64_and_create_napi_string(napi_env env, char *buffer, int length,
   memcpy((char *)pem + strlen(header), buf_out.data, buf_out.length);
   memcpy((char *)pem + strlen(header) + buf_out.length, footer, strlen(footer));
 
-  CHECK(napi_create_string_latin1(env, pem, sizeof(pem), value) == napi_ok);
+  assert(napi_create_string_latin1(env, pem, sizeof(pem), value) == napi_ok);
   gsk_free_buffer(&buf_out);
 
   return 0;
@@ -334,7 +326,7 @@ int validateAndExtractString(napi_env env, char *dest, napi_value src, int lengt
 
   memset(dest, 0, length + 1);
 
-  CHECK(napi_typeof(env, src, &valuetype) == napi_ok);
+  assert(napi_typeof(env, src, &valuetype) == napi_ok);
 
   if (valuetype != napi_string) {
     char msg[MSG_BUF_LEN];
@@ -343,7 +335,7 @@ int validateAndExtractString(napi_env env, char *dest, napi_value src, int lengt
     napi_throw_type_error(env, NULL, msg);
     return 1;
   }
-  CHECK(napi_get_value_string_latin1(env, src, NULL, 0, &src_len) == napi_ok);
+  assert(napi_get_value_string_latin1(env, src, NULL, 0, &src_len) == napi_ok);
 
   if (src_len > length) {
     char msg[MSG_BUF_LEN];
@@ -353,7 +345,7 @@ int validateAndExtractString(napi_env env, char *dest, napi_value src, int lengt
     return 1;
   }
 
-  CHECK(napi_get_value_string_latin1(env, src, dest, length + 1, &src_len) == napi_ok);
+  assert(napi_get_value_string_latin1(env, src, dest, length + 1, &src_len) == napi_ok);
 
   return 0;
 }
@@ -370,7 +362,7 @@ napi_value Init(napi_env env, napi_value exports) {
   desc[0] = (napi_property_descriptor) DECLARE_NAPI_METHOD("getData", GetData);
   desc[1] = (napi_property_descriptor) DECLARE_NAPI_METHOD("listKeyring", ListKeyring);
 
-  CHECK(napi_define_properties(env, exports, NUMBER_OF_FUNCTIONS, desc) == napi_ok);
+  assert(napi_define_properties(env, exports, NUMBER_OF_FUNCTIONS, desc) == napi_ok);
 
   return exports;
 }
