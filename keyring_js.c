@@ -31,6 +31,8 @@
 #define BEGINPRIVKEY "-----BEGIN PRIVATE KEY-----\n"
 #define ENDPRIVKEY "-----END PRIVATE KEY-----"
 
+#define _STRINGIFY(s) #s
+#define STRINGIFY(s) _STRINGIFY(s)
 
 int validateAndExtractString(napi_env, char*, napi_value, int, char*);
 int encode_base64_and_create_napi_string(napi_env, char *, int , napi_value *, char *, char *);
@@ -60,7 +62,7 @@ napi_value GetData(napi_env env, napi_callback_info info) {
 
   if (argc != GET_DATA_NUM_ARG) {
     napi_throw_type_error(env, NULL,
-      "Wrong number of arguments. Specify GET_DATA_NUM_ARG string arguments: \"userid\", \"keyring\", \"label\", \"format (der|pem)\"");
+      "Wrong number of arguments. Specify "STRINGIFY(GET_DATA_NUM_ARG)" string arguments: \"userid\", \"keyring\", \"label\", \"format (der|pem)\"");
     return NULL;
   }
 
@@ -279,7 +281,7 @@ napi_value ListKeyring(napi_env env, napi_callback_info info) {
 
   if (argc != LIST_KEYRING_NUM_ARG) {
     napi_throw_type_error(env, NULL,
-      "Wrong number of arguments. Specify LIST_KEYRING_NUM_ARG string arguments: \"userid\", \"keyring\"");
+      "Wrong number of arguments. Specify "STRINGIFY(LIST_KEYRING_NUM_ARG)" string arguments: \"userid\", \"keyring\"");
     return NULL;
   }
 
