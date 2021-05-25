@@ -35,7 +35,6 @@ const os = require('os');
 results = keyring.listKeyring("USERID", "Keyring");
 
 console.log("Keyring content:")
-let certificate;
 for (const item of results) {
   console.log(item);
 }
