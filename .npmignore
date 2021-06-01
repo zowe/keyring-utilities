@@ -4,3 +4,4 @@ build/
 Jenkinsfile
 .pax
 keyring_js*.tgz
+test/
