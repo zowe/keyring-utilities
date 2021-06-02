@@ -7,6 +7,7 @@ const keyringName = 'TESTRING'
 const certAlias = 'testalias'
 const usage = 'PERSONAL'
 const status = 'TRUST'
+const testp12 = 'testcert.p12'
 
 describe('Test keyring_js', function () {
   this.timeout(0);
@@ -160,8 +161,10 @@ describe('Test keyring_js', function () {
 });
 
 function createAndSetKeyring() {
+  spawnCommand('chtag', ['-b', testp12], './keyring-util');
+
   executeKeyringUtil(['NEWRING', username, keyringName]);
-  executeKeyringUtil(['IMPORT', username, keyringName, certAlias, usage, 'testcert.p12', 'password']);
+  executeKeyringUtil(['IMPORT', username, keyringName, certAlias, usage, testp12, 'password']);
 }
 
 function cleanUpKeyringAndCert() {
@@ -170,17 +173,17 @@ function cleanUpKeyringAndCert() {
 }
 
 function buildKeyringUtil() {
-  res = spawnSync('build.sh',[""],{
-    cwd: './keyring-util'
-  });
-  console.log(res.stdout.toString());
-  console.log(res.stderr.toString());
+  spawnCommand('build.sh', [], './keyring-util');
 }
 
 function executeKeyringUtil(param) {
   console.log('keyring-util ' + param.toString().replace(/,/g,' '));
-  res = spawnSync('keyring-util', param, {
-    cwd: './keyring-util'
+  spawnCommand('keyring-util', param, './keyring-util');
+}
+
+function spawnCommand(command, param, cwd) {
+  res = spawnSync(command, param, {
+    cwd: cwd
   });
   console.log(res.stdout.toString());
   console.log(res.stderr.toString());
