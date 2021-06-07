@@ -12,9 +12,51 @@ const keyring = require('./');
 const https = require('https');
 const os = require('os');
 
-// const data_der = keyring.getDerEncodedData("USERID", "Keyring", "Cert_label");
 
+/*
+ * Get keyring content.
+ *
+ * returns an array of objects representing certificates in a keyring, for example:
+ * 
+ * [
+ *   {
+ *     label: 'cert_label',
+ *     owner: 'CERTAUTH',
+ *     usage: 'CERTAUTH',
+ *     status: 'TRUST',
+ *     default: false,
+ *     pem: '-----BEGIN CERTIFICATE-----\n' +
+ *         certificate content in base64
+ *     '-----END CERTIFICATE-----'
+ *   },
+ *   ...
+ * ]
+ */
+results = keyring.listKeyring("USERID", "Keyring");
+
+console.log("Keyring content:")
+for (const item of results) {
+  console.log(item);
+}
+
+
+/*
+ * Get a specific certificate and its private key (in PEM/DER format).
+ *
+ * returns an object containing certificate and private key:
+ * 
+ * {
+ *   certificate: '-----BEGIN CERTIFICATE-----\n' +
+ *                 certificate content in base64
+ *                '-----END CERTIFICATE-----'
+ *
+ *   key: '-----BEGIN PRIVATE KEY-----\n' +
+ *         certificate content in base64
+ *        '-----END PRIVATE KEY-----'
+ * }
+ */
 const data_pem = keyring.getPemEncodedData("USERID", "Keyring", "Cert_label");
+// const data_der = keyring.getDerEncodedData("USERID", "Keyring", "Cert_label");
 
 const options = {
     key: data_pem.key,
@@ -22,7 +64,7 @@ const options = {
 };
 
 https.createServer(options, (req, res) => {
-    res.writeHead(200); 
-    res.end('hello, i\'m running on keyring: node: ' + process.version + ', arch: ' 
-        + os.arch() + ', platform: ' + os.platform() + '\n'); 
+    res.writeHead(200);
+    res.end('hello, i\'m running on keyring: node: ' + process.version + ', arch: '
+        + os.arch() + ', platform: ' + os.platform() + '\n');
 }).listen(12345);

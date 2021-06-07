@@ -10,17 +10,19 @@
 
 var binding = require('node-gyp-build')(__dirname);
 
-module.exports.getDerEncodedData = getDerEncodedData
-module.exports.getPemEncodedData = getPemEncodedData
+module.exports.getDerEncodedData = getDerEncodedData;
+module.exports.getPemEncodedData = getPemEncodedData;
+module.exports.listKeyring = listKeyring;
+
+
+function listKeyring(userid, keyring){
+  return binding.listKeyring(userid, keyring);
+}
 
 function getDerEncodedData(userid, keyring, label) {
     return binding.getData(userid, keyring, label, "der");
 }
 
 function getPemEncodedData(userid, keyring, label) {
-    const data = binding.getData(userid, keyring, label, "b64");
-        return {
-        certificate: "-----BEGIN CERTIFICATE-----\n" + data.certificate + "-----END CERTIFICATE-----",
-        key: "-----BEGIN PRIVATE KEY-----\n" + data.key + "-----END PRIVATE KEY-----"
-    };
+    return binding.getData(userid, keyring, label, "pem");
 }

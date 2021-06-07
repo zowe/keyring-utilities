@@ -26,6 +26,7 @@
 #define MAX_EXTRA_ARG_LEN 256       // may be adjusted
 
 #define GETCERT_CODE 0x01
+#define GETNEXT_CODE 0x02
 #define DATA_ABORT_CODE 0x03
 #define NEWRING_CODE 0x07
 #define IMPORT_CODE  0x08
