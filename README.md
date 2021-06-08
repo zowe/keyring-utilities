@@ -11,8 +11,11 @@ To build the addon, Node.js v8.16.0 or higher is required. The C/C++ toolchain h
 
 ```npm run prebuild``` 
 
+### Publishing 
+When creating a tarball from the package (`npm pack`) or publishing the package (`npm publish`), make sure native binaries are tagged as IBM-1047 file otherwise the binaries might get corrupted.
+
 ### Installation
-The [prebuildify](https://nodejs.org/api/n-api.html#n_api_prebuildify) tool is used to include prebuilt binaries to the package that is published to npm. That means, you can simply install the native addon from npm using the following command.
+The [prebuildify](https://nodejs.org/api/n-api.html#n_api_prebuildify) tool is used to ship prebuilt binaries to the package that is published to npm. That means, you can simply install the native addon (without a need to build from sources) from npm using the following command.
 
 ```npm install keyring_js``` 
 
