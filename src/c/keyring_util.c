@@ -18,7 +18,6 @@
 #include <gskcms.h>
 
 #include "keyring_types.h"
-#include "keyring_get.h"
 
 #define CERTIFICATE_HEADER "-----BEGIN CERTIFICATE-----\n"
 #define CERTIFICATE_FOOTER "-----END CERTIFICATE-----\n"
@@ -99,6 +98,59 @@ int main(int argc, char **argv)
     return 0;
 }
 
+void get_data(char *userid, char *keyring, char *label, Data_get_buffers *buffers, Return_codes *ret) {
+
+    gsk_handle handle;
+    int num_records;
+    int rc = 0;
+    gsk_buffer stream;
+    gsk_buffer key_stream;
+    // create a new string concatenating userid, keyring
+    char concat_userid_keyring[MAX_EXTRA_ARG_LEN];
+    strcat(strcat(strcpy(concat_userid_keyring, userid), "/"), keyring);
+    printf("concat_userid_keyring: %s\n", concat_userid_keyring);
+    // if the keyring is open successfully, search for the specified label
+    rc = gsk_open_keyring(concat_userid_keyring, &handle, &num_records);
+
+    if (rc != 0) {
+        printf("Could not open keyring %s: rc = %X\n", concat_userid_keyring, rc);
+        exit(1);
+    }
+
+    if (debug) {
+        printf("gsk_open_keyring returned %d, num_records %d\n", rc, num_records);
+
+    }
+
+    rc = gsk_export_certificate(handle, label, gskdb_export_der_binary, &stream);
+
+    if (rc == 0) {
+        memcpy(&buffers->certificate_length, &stream.length, sizeof(stream.length));
+        memcpy(buffers->certificate, stream.data, stream.length);
+    } else {
+        printf("Could not find certificate %s: GSK rc = %X\n", label, rc);
+        exit(1);
+    }
+    if (debug) {
+        printf("gsk_export_certificate returned %d, size=%d, ptr=%s\n", rc, stream.length, stream.data);
+    }
+    gsk_free_buffer(&stream);
+
+    rc = gsk_export_key(handle, label, gskdb_export_pkcs12v3_binary, x509_alg_pbeWithSha1And128BitRc4, "password", &key_stream);
+
+    if (rc == 0) {
+        memcpy(&buffers->private_key_length, &key_stream.length, sizeof(key_stream.length));
+        memcpy(buffers->private_key, key_stream.data, key_stream.length);
+    } // not all certs have the private key attached, don't fail if it's not there
+
+    if (debug) {
+        printf("gsk_export_key returned %d, size=%d, ptr=%s\n", rc, key_stream.length, key_stream.data);
+    }
+    
+    gsk_free_buffer(&key_stream);
+    gsk_close_database(&handle);
+}
+
 void resetGetParm(R_datalib_data_get *getParm) {
     getParm->certificate_len = MAX_CERTIFICATE_LEN;
     getParm->private_key_len = MAX_PRIVATE_KEY_LEN;
@@ -130,6 +182,29 @@ void import_action(R_datalib_parm_list_64* rdatalib_parms, void * function, Comm
     R_datalib_function *func = function;
     func->parmlist = &put_parm;
 
+    // exit if parms is missing or has an empty label, file_path, file_password, or usage
+    if (!parms->label || strlen(parms->label) == 0) {
+        printf("Error: Certificate label is required for this action.\n");
+        exit(1);
+    } else if (!parms->file_path || strlen(parms->file_path) == 0 ) {
+        printf("Missing required -f argument\n");
+        exit(1);
+    } else if (!parms->file_password || strlen(parms->file_password) == 0) {
+        printf("Missing required -p argument\n");
+        exit(1);
+    } else if(!parms->usage || strlen(parms->usage) == 0) {
+        printf("Missing required -u argument\n");
+        exit(1);
+    }
+
+    // parse and validate label
+    if (strlen(parms->label) >= MAX_LABEL_LEN) {
+        printf("Label too long, max length is %d\n", MAX_LABEL_LEN);
+        exit(1);
+    }
+
+    // parse and validate usage
+    printf("file path: %s\n", parms->file_path);
     if (load_pkcs12_file(&buff_in, /* pkcs12 file name */parms->file_path)) {
         return;
     }
@@ -139,8 +214,11 @@ void import_action(R_datalib_parm_list_64* rdatalib_parms, void * function, Comm
         return;
     }
 
+    printf("Private key content: \n%s\n%d\n", (char*)cert_key.privateKey.privateKey.data, cert_key.privateKey.privateKey.length);
+    printf("Cert content: \n%s\n%d\n", (char*)cert_key.certificate.u.certificate.derCertificate.data, cert_key.certificate.u.certificate.derCertificate.length);
+
     if ((rc = gsk_encode_private_key(&cert_key.privateKey, &priv_key_buff)) != 0) {
-        printf("Could not encode priv key: rc = %X\n", rc);
+        printf("WARN: Could not encode priv key: rc = %X. If you expected to import a private key, check your p12 file and ensure it's present.\n", rc);
     }
 
     if ((rc = gsk_encode_export_certificate(&cert_key.certificate, &CAs, gskdb_export_der_binary, &cert_buff)) != 0) {
@@ -225,7 +303,6 @@ int load_pkcs12_file(gsk_buffer *buff_in, char *filename) {
     if (fclose(stream)) {
         printf("fclose error.\n");
     }
-    free(buffer);
 
     return 0;
 }
@@ -392,7 +469,7 @@ void getcert_action(R_datalib_parm_list_64* rdatalib_parms, void * function, Com
     R_datalib_function *func = function;
 
 
-    if (parms->label == NULL || strlen(parms->label) == 0) {
+    if (!parms->label || strlen(parms->label) == 0) {
         printf("Error: Certificate label is required for this action.\n");
         exit(1);
     }
@@ -404,7 +481,7 @@ void getcert_action(R_datalib_parm_list_64* rdatalib_parms, void * function, Com
     memset(&ret_codes, 0, sizeof(Return_codes));
     memset(&buffers, 0, sizeof(Data_get_buffers));
 
-    get_data(parms->userid, parms->keyring, parms->label, &buffers, &ret_codes, debug);
+    get_data(parms->userid, parms->keyring, parms->label, &buffers, &ret_codes);
 
     if (ret_codes.SAF_return_code != 0) {
         printf("R_datalib call failed: function code: %.2X, SAF rc: %d, RACF rc: %d, RACF rsn: %d\n",
@@ -435,6 +512,12 @@ void delcert_action(R_datalib_parm_list_64* rdatalib_parms, void * function, Com
     if (debug) {
         printf("%s action\n", func->name);
     }
+
+    if(!parms->label || strlen(parms->label) == 0) {
+        printf("Error: Certificate label is required for this action.\n");
+        exit(1);
+    }
+
     rem_parm.label_len = strlen(parms->label);
     rem_parm.label_addr = parms->label;
     rem_parm.CERT_userid_len = strlen(parms->userid);
@@ -577,3 +660,4 @@ void print_help(R_datalib_parm_list_64* rdatalib_parms, void * function, Command
     printf("REFRESH - refreshes DIGTCERT class\n");
     printf("HELP    - prints this help\n");
 }
+
