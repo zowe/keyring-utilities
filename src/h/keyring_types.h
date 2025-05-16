@@ -48,6 +48,7 @@ typedef struct _Command_line_parms {
     char usage[MAX_USAGE_LEN + 1];
     char file_path[MAX_EXTRA_ARG_LEN];
     char file_password[MAX_EXTRA_ARG_LEN];
+    int export_key;
     int print_label_only;
     int print_owner_only;
 } Command_line_parms;
@@ -185,7 +186,7 @@ void print_help(R_datalib_parm_list_64*, void*, Command_line_parms*);
 void process_cmdline_parms(Command_line_parms*, int , char**);
 void validate_and_set_parm(char*, char*, int);
 void check_return_code(R_datalib_parm_list_64*);
-void dump_certificate_and_key(Data_get_buffers*);
+void dump_certificate_and_key(Data_get_buffers*, Command_line_parms*);
 void write_to_file(char*, char*, int, int);
 int load_pkcs12_file(gsk_buffer*, char*);
 

@@ -133,7 +133,7 @@ void get_data(char *userid, char *keyring, char *label, Data_get_buffers *buffer
         exit(1);
     }
     if (debug) {
-        printf("gsk_export_certificate returned %d, size=%d, ptr=%s\n", rc, stream.length, stream.data);
+        printf("gsk_export_certificate returned %d, size=%d\n", rc, stream.length);
     }
     gsk_free_buffer(&stream);
 
@@ -145,8 +145,8 @@ void get_data(char *userid, char *keyring, char *label, Data_get_buffers *buffer
     } // not all certs have the private key attached, don't fail if it's not there
 
     if (debug) {
-        printf("gsk_export_key returned %d, size=%d, ptr=%s\n", rc, key_stream.length, key_stream.data);
-    }
+        printf("gsk_export_key returned %d, size=%d\n", rc, key_stream.length);
+    }    
     
     gsk_free_buffer(&key_stream);
     gsk_close_database(&handle);
@@ -489,7 +489,7 @@ void getcert_action(R_datalib_parm_list_64* rdatalib_parms, void * function, Com
             ret_codes.function_code, ret_codes.SAF_return_code, ret_codes.RACF_return_code, ret_codes.RACF_reason_code);
         return;
     }
-    dump_certificate_and_key(&buffers, parms->file_path);
+    dump_certificate_and_key(&buffers, parms);
 }
 
 void simple_action(R_datalib_parm_list_64* rdatalib_parms, void * function, Command_line_parms* parms) {
@@ -539,44 +539,54 @@ void delcert_action(R_datalib_parm_list_64* rdatalib_parms, void * function, Com
     }
 }
 
-void dump_certificate_and_key(Data_get_buffers *buffers, char* file_path_in) {
+void dump_certificate_and_key(Data_get_buffers *buffers, Command_line_parms* parms) {
     char filename[40];
-
     memset(filename, 0, strlen(filename));
-    if (file_path_in && strlen(file_path_in) > 0) {
-        strcpy(filename, file_path_in);
+
+    if (parms->file_path && strlen(parms->file_path) > 0) {
+        strcpy(filename, parms->file_path);
     } else {
         strcpy(filename, buffers->label);
-        strcat(filename,".pem");
+        strcat(filename, parms->export_key ? ".p12" : ".pem");
     }
 
-    write_to_file(filename, buffers->certificate, buffers->certificate_length, FALSE);
-
-    memset(filename, 0, strlen(filename));
-    strcpy(filename, buffers->label);
-    strcat(filename,".key");
-
-    // write_to_file(filename, buffers->private_key, buffers->private_key_length, TRUE);
+    if (parms->export_key) {    
+        write_to_file(filename, buffers->private_key, buffers->private_key_length, TRUE);
+    } else {
+        write_to_file(filename, buffers->certificate, buffers->certificate_length, FALSE);
+    }
 }
 
 void write_to_file(char *filename, char *ptr, int len, int isPrivate) {
+
     FILE *stream;
     int numwritten;
     gsk_buffer buf_in = {len, ptr};
     gsk_buffer buf_out = {0, 0};
     gsk_status rc;
 
-    rc = gsk_encode_base64(&buf_in, &buf_out);
-    if (debug) printf("gsk_encode_base64 rc=%d\n", rc);
+    if (isPrivate) {
+        if ((stream = fopen(filename, "wb")) == NULL) {
+            printf("Could not open %s file.\n", filename);
+            return;
+        }
+        numwritten = fwrite(buf_in.data, sizeof(char), buf_in.length, stream);
 
-    if ((stream = fopen(filename, "w")) == NULL) {
-        printf("Could not open %s file.\n", filename);
-        return;
+    } else {
+        rc = gsk_encode_base64(&buf_in, &buf_out);
+        if (debug) printf("gsk_encode_base64 rc=%d\n", rc);
+    
+        if ((stream = fopen(filename, "w")) == NULL) {
+            printf("Could not open %s file.\n", filename);
+            return;
+        }
+    
+        fprintf(stream, CERTIFICATE_HEADER);
+        numwritten = fwrite(buf_out.data, sizeof(char), buf_out.length, stream);
+        fprintf(stream, CERTIFICATE_FOOTER);
     }
 
-    isPrivate ? fprintf(stream, PRIVATE_HEADER) : fprintf(stream, CERTIFICATE_HEADER);
-    numwritten = fwrite(buf_out.data, sizeof(char), buf_out.length, stream);
-    isPrivate ? fprintf(stream, PRIVATE_FOOTER) : fprintf(stream, CERTIFICATE_FOOTER);
+    
 
     gsk_free_buffer(&buf_out);
 
@@ -634,6 +644,8 @@ void process_cmdline_parms(Command_line_parms* parms, int argc, char** argv) {
             validate_and_set_parm(parms->file_password, optionValue, MAX_EXTRA_ARG_LEN);
         } else if (strcmp(argv[argx], "--label-only") == 0) {
             parms->print_label_only = 1;
+        } else if (strcmp(argv[argx], "-k") == 0) {
+            parms->export_key = 1;
         } else if (strcmp(argv[argx], "--owner-only") == 0) {
             parms->print_owner_only = 1;
         } else if (strcmp(argv[argx], "--help") == 0) {
@@ -647,8 +659,6 @@ void process_cmdline_parms(Command_line_parms* parms, int argc, char** argv) {
     }
 }
 
-
-
 void print_help(R_datalib_parm_list_64* rdatalib_parms, void * function, Command_line_parms* parms) {
     printf("----------------------------------------------------\n");
     printf("Usage: keyring-util function <userid> <keyring> <args>\n");
@@ -660,7 +670,7 @@ void print_help(R_datalib_parm_list_64* rdatalib_parms, void * function, Command
     printf("NEWRING - creates a new keyring. args: none\n");
     printf("DELRING - deletes a keyring. args: none\n");
     printf("DELCERT - disconnects a certificate (label) from a keyring or deletes a certificate from RACF database. args: -l <label>\n");
-    printf("EXPORT  - exports a certificate from a keyring to a PEM file. args: -l <label>. optional: -f <path/to/file/out> \n");
+    printf("EXPORT  - exports a certificate from a keyring to a PEM file. args: -l <label>. optional: -k, -f <path/to/file/out> \n");
     printf("IMPORT  - imports a certificate (with a private key if present) to a keyring from PKCS12 file. args: -l <label>, -f <path/to/pkcs12>, -p <pkcs12-password>\n");
     printf("REFRESH - refreshes DIGTCERT class\n");
     printf("HELP    - prints this help\n");
