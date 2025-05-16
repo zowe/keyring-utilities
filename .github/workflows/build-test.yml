@@ -113,7 +113,7 @@ jobs:
         with:
           pax-name: 'keyring-util'
           pax-options: '-x os390 -pp'
-          pax-local-workspace: './.pax/keyring-util'
+          pax-local-workspace: './.pax'
           pax-ssh-username: ${{ secrets.SSH_MARIST_USERNAME }}
           pax-ssh-password: ${{ secrets.SSH_MARIST_RACF_PASSWORD }}
 
@@ -122,7 +122,7 @@ jobs:
         if: success()
         with:
           artifacts: |
-            .pax/keyring-util/keyring-util.pax
+            .pax/keyring-util.pax
           publish-target-path-pattern: libs-snapshot-local/org/zowe/keyring-utilities/${{ steps.version.outputs.version }}-${{ steps.branch.outputs.branch }}
           publish-target-file-pattern: keyring-util-${{ steps.version.outputs.version }}-${{ steps.date.outputs.date }}.pax
           perform-release: ${{ github.event.inputs.PERFORM_RELEASE }}
