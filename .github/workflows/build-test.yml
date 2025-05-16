@@ -97,7 +97,7 @@ jobs:
       - name: '[Prep 4] Set version'
         id: version
         run: |
-            echo version=$(cat manifest.yml | grep version | cut -f 2 -d: | awk '{$1=$1};1')" >> $GITHUB_OUTPUT 
+            echo "version=$(cat manifest.yml | grep version | cut -f 2 -d: | awk '{$1=$1};1')" >> $GITHUB_OUTPUT 
 
       - name: '[Prep 5] Set branchname'
         id: branch
