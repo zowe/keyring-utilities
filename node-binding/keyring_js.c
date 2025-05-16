@@ -223,6 +223,79 @@ int getKeyringContent(napi_env env, napi_value *array, char *userid, char *keyri
   getParm.private_key_ptr = buffers.private_key;
   getParm.label_ptr = buffers.label;
   getParm.subjects_DN_ptr = buffers.subject_DN;
+/**
+ * @brief Adds a certificate item to the summary list.
+ *
+ * This function populates a `Certificate_summary` object with details from a `R_datalib_data_get` structure
+ * and stores it in an array at the specified index. The details include label, owner, usage, status, default
+ * status, and the PEM representation of the certificate.
+ *
+ * @param summary     Pointer to a `Certificate_summary` structure where the certificate summary will be stored.
+ * @param getParm     Pointer to a `R_datalib_data_get` structure containing the certificate details.
+ * @param index       The index in the array where the certificate summary should be stored.
+ *
+ * @return void       This function does not return a value.
+ */
+void addCertItem(Certificate_summary* summary, R_datalib_data_get *getParm, int index) {
+    napi_value element, string, isDefault;
+    char *str;
+    int certUserLen;
+  
+    certUserLen = lengthWithoutTralingSpaces(getParm->cert_userid, 8);
+  
+    __e2a_l(getParm->label_ptr, getParm->label_len);
+    __e2a_l(getParm->cert_userid, getParm->cert_userid_len);
+  
+    assert(napi_create_object(env, &element) == napi_ok);
+  
+    assert(napi_create_string_latin1(env, getParm->label_ptr, getParm->label_len, &string) == napi_ok);
+    assert(napi_set_named_property(env, element, "label", string) == napi_ok);
+  
+    assert(napi_create_string_latin1(env, getParm->cert_userid, certUserLen, &string) == napi_ok);
+    assert(napi_set_named_property(env, element, "owner", string) == napi_ok);
+  
+    switch (getParm->certificate_usage) {
+      case 0x00000008:
+        str = "PERSONAL";
+        break;
+      case 0x00000002:
+        str = "CERTAUTH";
+        break;
+      default:
+        str = "OTHER";
+    }
+    assert(napi_create_string_latin1(env, str, strlen(str), &string) == napi_ok);
+    assert(napi_set_named_property(env, element, "usage", string) == napi_ok);
+  
+    switch (getParm->certificate_status) {
+      case 0x80000000:
+        str = "TRUST";
+        break;
+      case 0x40000000:
+        str = "HIGHTRUST";
+        break;
+      case 0x20000000:
+        str = "NOTRUST";
+        break;
+      default:
+        str = "UNKNOWN";
+    }
+    assert(napi_create_string_latin1(env, str, strlen(str), &string) == napi_ok);
+    assert(napi_set_named_property(env, element, "status", string) == napi_ok);
+  
+    if (getParm->Default == 0) {
+      assert(napi_get_boolean(env, 0, &isDefault) == napi_ok);
+    } else {
+      assert(napi_get_boolean(env, 1, &isDefault) == napi_ok);
+    }
+    assert(napi_set_named_property(env, element, "default", isDefault) == napi_ok);
+  
+    encode_base64_and_create_napi_string(env, getParm->certificate_ptr, getParm->certificate_len, &string, BEGINCERT, ENDCERT);
+    assert(napi_set_named_property(env, element, "pem", string) == napi_ok);
+  
+    assert(napi_set_element(env, *array, index, element) == napi_ok);
+  
+  }
   getParm.record_ID_ptr = buffers.record_id;
   // X'80000000' = TRUST; X'40000000' = HIGHTRUST; X'20000000' = NOTRUST; X'00000000' = ANY
   getParm.certificate_status = 0x00000000;

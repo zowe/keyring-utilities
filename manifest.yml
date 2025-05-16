@@ -1,0 +1,9 @@
+---
+name: keyring-utilities
+version: 3.0.0
+homepage: https://zowe.org
+keywords:
+  - keyring
+  - keyring-utilities
+  - zowe
+license: EPL-2.0

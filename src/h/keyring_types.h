@@ -14,8 +14,8 @@
 
 #include <gskcms.h>
 
-
 #define MAX_FUNCTION_LEN 16          // may be adjusted
+#define MAX_USAGE_LEN 20
 #define MAX_USERID_LEN 8
 #define MAX_KEYRING_LEN 236
 #define MAX_LABEL_LEN 32
@@ -34,20 +34,32 @@
 #define DELRING_CODE 0x0A
 #define REFRESH_CODE 0x0B
 #define HELP_CODE  0x00
+#define LISTRING_CODE 0xFF
 #define NOTSUPPORTED_CODE 0x00
 
 #define TRUE 1
 #define FALSE 0
 
-typedef struct _Command_line_params {
+typedef struct _Command_line_parms {
     char function[MAX_FUNCTION_LEN];
     char userid[MAX_USERID_LEN + 1];
     char keyring[MAX_KEYRING_LEN + 1];
     char label[MAX_LABEL_LEN + 1];
-    char extra_arg_0[MAX_EXTRA_ARG_LEN + 1];
-    char extra_arg_1[MAX_EXTRA_ARG_LEN + 1];
-    char extra_arg_2[MAX_EXTRA_ARG_LEN + 1];
+    char usage[MAX_USAGE_LEN + 1];
+    char file_path[MAX_EXTRA_ARG_LEN];
+    char file_password[MAX_EXTRA_ARG_LEN];
+    int print_label_only;
+    int print_owner_only;
 } Command_line_parms;
+
+typedef struct _Certificate_summary {
+    char label[MAX_CERTIFICATE_LEN];
+    char usage[MAX_USAGE_LEN + 1];
+    char userid[MAX_USAGE_LEN + 1];
+    char status[99];
+    int isDefault;
+} Certificate_summary;
+
 
 typedef struct _R_datalib_parm_list_64 { 
 	int num_parms;
@@ -69,12 +81,14 @@ typedef void (*function_action)(R_datalib_parm_list_64*, void*, Command_line_par
 
 typedef struct _R_datalib_function {
 	char name[MAX_FUNCTION_LEN];
+    char num_args;
     char code;
     int default_attributes;
     int parm_list_version;
     void *parmlist;
     function_action action;
 } R_datalib_function;
+
 
 typedef _Packed struct _R_datalib_data_remove { // DO NOT change property positions in this struct
     int label_len;
@@ -96,6 +110,7 @@ typedef struct _Data_get_buffers {
     char subject_DN[MAX_SUBJECT_DN_LEN];
     char record_id[MAX_RECORD_ID_LEN];
 } Data_get_buffers;
+
 
 typedef struct _Return_codes {
     char function_code;
@@ -161,6 +176,7 @@ typedef _Packed struct _R_datalib_data_put { // DO NOT change property positions
 
 void invoke_R_datalib(R_datalib_parm_list_64*);
 void set_up_R_datalib_parameters(R_datalib_parm_list_64* , R_datalib_function* , char* ,char* );
+void listring_action(R_datalib_parm_list_64*, void*,Command_line_parms*);
 void simple_action(R_datalib_parm_list_64*, void*, Command_line_parms*);
 void delcert_action(R_datalib_parm_list_64*, void*, Command_line_parms*);
 void getcert_action(R_datalib_parm_list_64*, void*, Command_line_parms*);

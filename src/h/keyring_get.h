@@ -13,6 +13,6 @@
 
 #include "keyring_types.h"
 
-void get_data(char*, char*, char*, Data_get_buffers*, Return_codes*);
+void get_data(char*, char*, char*, Data_get_buffers*, Return_codes*, int);
 
 #endif 
