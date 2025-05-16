@@ -127,6 +127,7 @@ void get_data(char *userid, char *keyring, char *label, Data_get_buffers *buffer
     if (rc == 0) {
         memcpy(&buffers->certificate_length, &stream.length, sizeof(stream.length));
         memcpy(buffers->certificate, stream.data, stream.length);
+        memcpy(buffers->label, label, strlen(label));
     } else {
         printf("Could not find certificate %s: GSK rc = %X\n", label, rc);
         exit(1);
@@ -488,7 +489,7 @@ void getcert_action(R_datalib_parm_list_64* rdatalib_parms, void * function, Com
             ret_codes.function_code, ret_codes.SAF_return_code, ret_codes.RACF_return_code, ret_codes.RACF_reason_code);
         return;
     }
-    dump_certificate_and_key(&buffers);
+    dump_certificate_and_key(&buffers, parms->file_path);
 }
 
 void simple_action(R_datalib_parm_list_64* rdatalib_parms, void * function, Command_line_parms* parms) {
@@ -538,12 +539,16 @@ void delcert_action(R_datalib_parm_list_64* rdatalib_parms, void * function, Com
     }
 }
 
-void dump_certificate_and_key(Data_get_buffers *buffers) {
+void dump_certificate_and_key(Data_get_buffers *buffers, char* file_path_in) {
     char filename[40];
 
     memset(filename, 0, strlen(filename));
-    strcpy(filename, buffers->label);
-    strcat(filename,".pem");
+    if (file_path_in && strlen(file_path_in) > 0) {
+        strcpy(filename, file_path_in);
+    } else {
+        strcpy(filename, buffers->label);
+        strcat(filename,".pem");
+    }
 
     write_to_file(filename, buffers->certificate, buffers->certificate_length, FALSE);
 
@@ -655,7 +660,7 @@ void print_help(R_datalib_parm_list_64* rdatalib_parms, void * function, Command
     printf("NEWRING - creates a new keyring. args: none\n");
     printf("DELRING - deletes a keyring. args: none\n");
     printf("DELCERT - disconnects a certificate (label) from a keyring or deletes a certificate from RACF database. args: -l <label>\n");
-    printf("EXPORT  - exports a certificate from a keyring to a PEM file. args: -l <label>\n");
+    printf("EXPORT  - exports a certificate from a keyring to a PEM file. args: -l <label>. optional: -f <path/to/file/out> \n");
     printf("IMPORT  - imports a certificate (with a private key if present) to a keyring from PKCS12 file. args: -l <label>, -f <path/to/pkcs12>, -p <pkcs12-password>\n");
     printf("REFRESH - refreshes DIGTCERT class\n");
     printf("HELP    - prints this help\n");
