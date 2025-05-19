@@ -1,5 +1,5 @@
 BASEDIR=$(dirname $0)
-c89 -W"c,lp64,langlv(STDC99),arch(8)" -Wl,lp64 -I${BASEDIR}/../src/h -o ${BASEDIR}/keyring-util \
+xlclang -q64 "-Wc,lp64,langlv(extc99),arch(10),TARGET(zOSV2R4)" -fPIE -Wl,lp64 -I${BASEDIR}/../src/h -o ${BASEDIR}/keyring-util \
     ${BASEDIR}/../src/c/keyring_util.c \
     ${BASEDIR}/../src/c/keyring_service.c \
     /usr/lib/GSKCMS64.x
