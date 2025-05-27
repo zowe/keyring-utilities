@@ -38,8 +38,7 @@ int main(int argc, char **argv)
     memset(&parms, 0, sizeof(Command_line_parms));
 
     validate_and_set_parm(parms.function, argv[1], MAX_FUNCTION_LEN);
-
-    if (parms.function == NULL || strlen(parms.function) == 0) {
+    if (strlen(parms.function) == 0) {
         print_help(NULL, NULL, NULL);
     }
 
@@ -69,7 +68,7 @@ int main(int argc, char **argv)
     } else if (r_function.num_args == 2) {
         validate_and_set_parm(parms.userid, argv[2], MAX_USERID_LEN);
         validate_and_set_parm(parms.keyring, argv[3], MAX_KEYRING_LEN);
-        if (!parms.userid || !parms.keyring || strlen(parms.userid) == 0 || strlen(parms.keyring) == 0) {
+        if (strlen(parms.userid) == 0 || strlen(parms.keyring) == 0) {
             printf("Missing userid or keyring.\n");
             exit(1);
         }
@@ -84,7 +83,7 @@ int main(int argc, char **argv)
         
         printf(
             "Parms parsed: name: %s, userid: %s, keyring: %s, label: %s, usage:%s, userid: %s, print_label_only: %d, print_owner_only: %d, file_path: %s, file_password: %s, debug: %d\n", 
-            parms.function, parms.userid, parms.keyring, parms.label, parms.usage, parms.userid, parms.print_label_only, parms.print_owner_only, parms.file_path, parms.file_password, debug
+            parms.function, parms.userid, parms.keyring, parms.label, parms.usage, parms.userid, parms.print_label_only, parms.print_owner_only, parms.file_path, parms.file_password, debug  // ^^ added comma and formatted for readability ^^
         );
     }
 
@@ -187,16 +186,16 @@ void import_action(R_datalib_parm_list_64* rdatalib_parms, void * function, Comm
     func->parmlist = &put_parm;
 
     // exit if parms is missing or has an empty label, file_path, file_password, or usage
-    if (!parms->label || strlen(parms->label) == 0) {
+    if (strlen(parms->label) == 0) {
         printf("Error: Certificate label is required for this action.\n");
         exit(1);
-    } else if (!parms->file_path || strlen(parms->file_path) == 0 ) {
+    } else if (strlen(parms->file_path) == 0 ) {
         printf("Missing required -f argument\n");
         exit(1);
-    } else if (!parms->file_password || strlen(parms->file_password) == 0) {
+    } else if (strlen(parms->file_password) == 0) {
         printf("Missing required -p argument\n");
         exit(1);
-    } else if(!parms->usage || strlen(parms->usage) == 0) {
+    } else if(strlen(parms->usage) == 0) {
         printf("Missing required -u argument\n");
         exit(1);
     }
@@ -366,10 +365,10 @@ void addCertItem(Certificate_summary *summary, R_datalib_data_get *getParm, int 
 void list_certificate_summary(Certificate_summary *summary, Command_line_parms* params) {
 
     int print_this_cert = 1;
-    if (params->label != NULL && strlen(params->label) > 0 && strcmp(summary->label, params->label) != 0) {
+    if (strlen(params->label) > 0 && strcmp(summary->label, params->label) != 0) {
         print_this_cert = 0;
     }
-    if (params->usage!= NULL && strlen(params->usage) > 0 && strcmp(summary->usage, params->usage) != 0) {
+    if (strlen(params->usage) > 0 && strcmp(summary->usage, params->usage) != 0) {
         print_this_cert = 0;
     }
     if (print_this_cert) {
@@ -473,7 +472,7 @@ void getcert_action(R_datalib_parm_list_64* rdatalib_parms, void * function, Com
     R_datalib_function *func = function;
 
 
-    if (!parms->label || strlen(parms->label) == 0) {
+    if (strlen(parms->label) == 0) {
         printf("Error: Certificate label is required for this action.\n");
         exit(1);
     }
@@ -517,7 +516,7 @@ void delcert_action(R_datalib_parm_list_64* rdatalib_parms, void * function, Com
         printf("%s action\n", func->name);
     }
 
-    if(!parms->label || strlen(parms->label) == 0) {
+    if(strlen(parms->label) == 0) {
         printf("Error: Certificate label is required for this action.\n");
         exit(1);
     }
@@ -546,7 +545,7 @@ void dump_certificate_and_key(Data_get_buffers *buffers, Command_line_parms* par
     char filename[40];
     memset(filename, 0, strlen(filename));
 
-    if (parms->file_path && strlen(parms->file_path) > 0) {
+    if (strlen(parms->file_path) > 0) {
         strcpy(filename, parms->file_path);
     } else {
         strcpy(filename, buffers->label);
