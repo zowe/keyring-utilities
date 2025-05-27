@@ -70,10 +70,9 @@ int main(int argc, char **argv)
         validate_and_set_parm(parms.userid, argv[2], MAX_USERID_LEN);
         validate_and_set_parm(parms.keyring, argv[3], MAX_KEYRING_LEN);
         if (!parms.userid || !parms.keyring || strlen(parms.userid) == 0 || strlen(parms.keyring) == 0) {
-            printf("Missing userid or keyring\n");
+            printf("Missing userid or keyring.\n");
             exit(1);
         }
-
         process_cmdline_parms(&parms, argc-4, &argv[4]);
     } else {
         printf("Unsupported number of args for %s\n", r_function.name);
@@ -85,7 +84,7 @@ int main(int argc, char **argv)
         
         printf(
             "Parms parsed: name: %s, userid: %s, keyring: %s, label: %s, usage:%s, userid: %s, print_label_only: %d, print_owner_only: %d, file_path: %s, file_password: %s, debug: %d\n", 
-            parms.function, parms.userid, parms.keyring, parms.label, parms.usage, parms.userid, parms.print_label_only, parms.print_owner_only, parms.file_path, parms.file_password, debug  // ^^ added comma and formatted for readability ^^
+            parms.function, parms.userid, parms.keyring, parms.label, parms.usage, parms.userid, parms.print_label_only, parms.print_owner_only, parms.file_path, parms.file_password, debug
         );
     }
 
@@ -168,10 +167,8 @@ void resetGetParm(R_datalib_data_get *getParm) {
 }
   
 
-void throwRdatalibException(int function, int safRC, int racfRC, int racfRSN ) {
-    char err_msg[256];
-    memset(err_msg,0,256);
-    sprintf(err_msg, "R_datalib call failed: function code: %.2X, SAF rc: %d, RACF rc: %d, RACF rsn: %d\n",
+void printRdatalibException(int function, int safRC, int racfRC, int racfRSN ) {
+    printf("R_datalib call failed: function code: %.2X, SAF rc: %d, RACF rc: %d, RACF rsn: %d\n",
         function, safRC, racfRC, racfRSN);
 }
 
@@ -424,7 +421,7 @@ void listring_action(R_datalib_parm_list_64* rdatalib_parms, void * function, Co
     invoke_R_datalib(&parms);
   
     if (parms.return_code != 0) {
-      throwRdatalibException(parms.function_code, parms.return_code, parms.RACF_return_code, parms.RACF_reason_code);
+      printRdatalibException(parms.function_code, parms.return_code, parms.RACF_return_code, parms.RACF_reason_code);
       exit(1);
     }
   
@@ -446,7 +443,7 @@ void listring_action(R_datalib_parm_list_64* rdatalib_parms, void * function, Co
         break;
       }
       else if (parms.return_code != 0) {
-        throwRdatalibException(parms.function_code, parms.return_code, parms.RACF_return_code, parms.RACF_reason_code);
+        printRdatalibException(parms.function_code, parms.return_code, parms.RACF_return_code, parms.RACF_reason_code);
         rc = parms.return_code;
         // cleanup allocations before exiting
         for (int j = 0; j < i; j++) {
