@@ -98,7 +98,7 @@ int main(int argc, char **argv)
     return 0;
 }
 
-void get_data(char *userid, char *keyring, char *label, Data_get_buffers *buffers, Return_codes *ret) {
+void get_data(char *userid, char *keyring, char *label, char* optional_password, Data_get_buffers *buffers, Return_codes *ret) {
 
     gsk_handle handle;
     int num_records;
@@ -108,7 +108,9 @@ void get_data(char *userid, char *keyring, char *label, Data_get_buffers *buffer
     // create a new string concatenating userid, keyring
     char concat_userid_keyring[MAX_EXTRA_ARG_LEN];
     strcat(strcat(strcpy(concat_userid_keyring, userid), "/"), keyring);
-    printf("concat_userid_keyring: %s\n", concat_userid_keyring);
+    if (debug) {
+        printf("Opening keyring: %s\n", concat_userid_keyring);
+    }
     // if the keyring is open successfully, search for the specified label
     rc = gsk_open_keyring(concat_userid_keyring, &handle, &num_records);
 
@@ -137,7 +139,11 @@ void get_data(char *userid, char *keyring, char *label, Data_get_buffers *buffer
     }
     gsk_free_buffer(&stream);
 
-    rc = gsk_export_key(handle, label, gskdb_export_pkcs12v3_binary, x509_alg_pbeWithSha1And128BitRc4, "password", &key_stream);
+    char* pass= "password";
+    if (optional_password!= NULL && strlen(optional_password) > 0) {
+        pass = optional_password;
+    }
+    rc = gsk_export_key(handle, label, gskdb_export_pkcs12v3_binary, x509_alg_pbeWithSha1And128BitRc4, pass, &key_stream);
 
     if (rc == 0) {
         memcpy(&buffers->private_key_length, &key_stream.length, sizeof(key_stream.length));
@@ -482,7 +488,7 @@ void getcert_action(R_datalib_parm_list_64* rdatalib_parms, void * function, Com
     memset(&ret_codes, 0, sizeof(Return_codes));
     memset(&buffers, 0, sizeof(Data_get_buffers));
 
-    get_data(parms->userid, parms->keyring, parms->label, &buffers, &ret_codes);
+    get_data(parms->userid, parms->keyring, parms->label, parms->file_password, &buffers, &ret_codes);
 
     if (ret_codes.SAF_return_code != 0) {
         printf("R_datalib call failed: function code: %.2X, SAF rc: %d, RACF rc: %d, RACF rsn: %d\n",
@@ -670,7 +676,7 @@ void print_help(R_datalib_parm_list_64* rdatalib_parms, void * function, Command
     printf("NEWRING - creates a new keyring. args: none\n");
     printf("DELRING - deletes a keyring. args: none\n");
     printf("DELCERT - disconnects a certificate (label) from a keyring or deletes a certificate from RACF database. args: -l <label>\n");
-    printf("EXPORT  - exports a certificate from a keyring to a PEM file. args: -l <label>. optional: -k, -f <path/to/file/out> \n");
+    printf("EXPORT  - exports a certificate from a keyring to a PEM file. args: -l <label>. optional: -k, -f <path/to/file/out> -p <password>\n");
     printf("IMPORT  - imports a certificate (with a private key if present) to a keyring from PKCS12 file. args: -l <label>, -f <path/to/pkcs12>, -p <pkcs12-password>\n");
     printf("REFRESH - refreshes DIGTCERT class\n");
     printf("HELP    - prints this help\n");
