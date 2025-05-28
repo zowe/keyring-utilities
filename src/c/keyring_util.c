@@ -319,7 +319,7 @@ void addCertItem(Certificate_summary *summary, R_datalib_data_get *getParm, int 
     char *str;
     int certUserLen;
   
-    certUserLen = lengthWithoutTralingSpaces(getParm->cert_userid, 8);
+    certUserLen = lengthWithoutTralingSpaces(getParm->cert_userid, sizeof(getParm->cert_userid));
   
     strncpy(summary->label, getParm->label_ptr, getParm->label_len);
     strncpy(summary->userid, getParm->cert_userid, getParm->cert_userid_len);

@@ -143,7 +143,7 @@ void addCertItem(napi_env env, napi_value *array, R_datalib_data_get *getParm, i
   char *str;
   int certUserLen;
 
-  certUserLen = lengthWithoutTralingSpaces(getParm->cert_userid, 8);
+  certUserLen = lengthWithoutTralingSpaces(getParm->cert_userid, sizeof(getParm->cert_userid));
 
   __e2a_l(getParm->label_ptr, getParm->label_len);
   __e2a_l(getParm->cert_userid, getParm->cert_userid_len);
@@ -241,7 +241,7 @@ void addCertItem(Certificate_summary* summary, R_datalib_data_get *getParm, int 
     char *str;
     int certUserLen;
   
-    certUserLen = lengthWithoutTralingSpaces(getParm->cert_userid, 8);
+    certUserLen = lengthWithoutTralingSpaces(getParm->cert_userid, sizeof(getParm->cert_userid));
   
     __e2a_l(getParm->label_ptr, getParm->label_len);
     __e2a_l(getParm->cert_userid, getParm->cert_userid_len);
