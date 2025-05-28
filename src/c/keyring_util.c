@@ -80,7 +80,6 @@ int main(int argc, char **argv)
 
     //print parms for debug
     if (debug) {
-        
         printf(
             "Parms parsed: name: %s, userid: %s, keyring: %s, label: %s, usage:%s, userid: %s, print_label_only: %d, print_owner_only: %d, file_path: %s, file_password: %s, debug: %d\n", 
             parms.function, parms.userid, parms.keyring, parms.label, parms.usage, parms.userid, parms.print_label_only, parms.print_owner_only, parms.file_path, parms.file_password, debug  // ^^ added comma and formatted for readability ^^
@@ -91,7 +90,6 @@ int main(int argc, char **argv)
         printf("Selected function is %s with code of %.2X\n", r_function.name, r_function.code);
     }
     r_function.action(&p, &r_function, &parms);
-
 
     return 0;
 }
@@ -119,7 +117,6 @@ void get_data(char *userid, char *keyring, char *label, char* optional_password,
 
     if (debug) {
         printf("gsk_open_keyring returned %d, num_records %d\n", rc, num_records);
-
     }
 
     rc = gsk_export_certificate(handle, label, gskdb_export_der_binary, &stream);
