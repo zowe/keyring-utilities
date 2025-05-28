@@ -17,11 +17,11 @@ Enter the `build/` directory and execute the `build.sh` script
 keyring-util function userid keyring label
 ```
 **Parameters:**
- 1. `function` see [Functions](##Functions) section below
+ 1. `function` see [Functions](#Functions) section below
  2. `userid` - an owner of the `keyring` and `label` certificate
  3. `keyring` - a name of the keyring
  4. **(Optional)** `-v`: verbose logging.
- 5. Command-specific arguments, see [Functions](##Functions) Supported Arguments.
+ 5. Command-specific arguments, see [Functions](#Functions) Supported Arguments.
 
 ## Functions
 
