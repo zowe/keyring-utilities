@@ -204,7 +204,9 @@ void import_action(R_datalib_parm_list_64* rdatalib_parms, void * function, Comm
     }
 
     // parse and validate usage
-    printf("file path: %s\n", parms->file_path);
+    if (debug) {
+        printf("file path: %s\n", parms->file_path);
+    }
     if (load_pkcs12_file(&buff_in, /* pkcs12 file name */parms->file_path)) {
         return;
     }
@@ -213,9 +215,6 @@ void import_action(R_datalib_parm_list_64* rdatalib_parms, void * function, Comm
         printf("Could not read p12 file: rc = %X\n", rc);
         return;
     }
-
-    printf("Private key content: \n%s\n%d\n", (char*)cert_key.privateKey.privateKey.data, cert_key.privateKey.privateKey.length);
-    printf("Cert content: \n%s\n%d\n", (char*)cert_key.certificate.u.certificate.derCertificate.data, cert_key.certificate.u.certificate.derCertificate.length);
 
     if ((rc = gsk_encode_private_key(&cert_key.privateKey, &priv_key_buff)) != 0) {
         printf("WARN: Could not encode priv key: rc = %X. If you expected to import a private key, check your p12 file and ensure it's present.\n", rc);
@@ -318,7 +317,7 @@ int lengthWithoutTralingSpaces(char *str, int maxlen) {
 void addCertItem(Certificate_summary *summary, R_datalib_data_get *getParm, int index) {
     char *str;
     int certUserLen;
-  
+
     certUserLen = lengthWithoutTralingSpaces(getParm->cert_userid, sizeof(getParm->cert_userid));
   
     strncpy(summary->label, getParm->label_ptr, getParm->label_len);
@@ -670,7 +669,7 @@ void print_help(R_datalib_parm_list_64* rdatalib_parms, void * function, Command
     printf("DELRING - deletes a keyring. args: none\n");
     printf("DELCERT - disconnects a certificate (label) from a keyring or deletes a certificate from RACF database. args: -l <label>\n");
     printf("EXPORT  - exports a certificate from a keyring to a PEM file. args: -l <label>. optional: -k, -f <path/to/file/out> -p <password>\n");
-    printf("IMPORT  - imports a certificate (with a private key if present) to a keyring from PKCS12 file. args: -l <label>, -f <path/to/pkcs12>, -p <pkcs12-password>\n");
+    printf("IMPORT  - imports a certificate (with a private key if present) to a keyring from PKCS12 file. args: -l <label>, -f <path/to/pkcs12>, -p <pkcs12-password> -u <usage>\n");
     printf("REFRESH - refreshes DIGTCERT class\n");
     printf("HELP    - prints this help\n");
 }
