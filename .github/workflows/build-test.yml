@@ -106,14 +106,17 @@ jobs:
 
       - name: '[Prep 6] Prepare workflow'
         uses: zowe-actions/shared-actions/prepare-workflow@main
-      
 
+      - name: '[Prep 7] Embed build metadata'
+        uses: zowe-actions/shared-actions/embed-metadata@main
+        with:
+          target-file: manifest.yaml
+          metadata-format: YAML
       - name: '[Packaging] Make pax'
         uses: zowe-actions/shared-actions/make-pax@main
         with:
           pax-name: 'keyring-util'
           pax-options: '-x os390 -pp'
-          embed-build-metadata-in-file: manifest.yaml
           pax-local-workspace: './.pax'
           pax-ssh-username: ${{ secrets.SSH_MARIST_USERNAME }}
           pax-ssh-password: ${{ secrets.SSH_MARIST_RACF_PASSWORD }}
