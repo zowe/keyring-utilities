@@ -97,7 +97,7 @@ jobs:
       - name: '[Prep 4] Set version'
         id: version
         run: |
-            echo "version=$(cat manifest.yml | grep version | cut -f 2 -d: | awk '{$1=$1};1')" >> $GITHUB_OUTPUT 
+            echo "version=$(cat manifest.yaml | grep version | cut -f 2 -d: | awk '{$1=$1};1')" >> $GITHUB_OUTPUT 
 
       - name: '[Prep 5] Set branchname'
         id: branch
@@ -113,6 +113,7 @@ jobs:
         with:
           pax-name: 'keyring-util'
           pax-options: '-x os390 -pp'
+          embed-build-metadata-in-file: manifest.yaml
           pax-local-workspace: './.pax'
           pax-ssh-username: ${{ secrets.SSH_MARIST_USERNAME }}
           pax-ssh-password: ${{ secrets.SSH_MARIST_RACF_PASSWORD }}
