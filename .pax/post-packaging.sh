@@ -11,7 +11,6 @@ set -xe
 # Copyright Contributors to the Zowe Project.
 ################################################################################
 
-
 # contants
 SCRIPT_NAME=$(basename "$0")
 SCRIPT_DIR=$(pwd)
@@ -21,4 +20,4 @@ echo "$SCRIPT_NAME building keyring ..."
 
 cd "$SCRIPT_DIR"
 
-cp bk/keyring-util/keyring-util .
+cp bk/build/keyring-util .

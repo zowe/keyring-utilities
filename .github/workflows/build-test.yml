@@ -1,0 +1,136 @@
+name: Build Keyring-Utilities
+permissions:
+  id-token: write
+  issues: write
+  pull-requests: write
+  contents: write
+on:
+  push:
+    branches:
+      - master
+  pull_request:
+    types: [opened, reopened, synchronize]
+  workflow_dispatch:
+    inputs:
+      PERFORM_RELEASE:
+        description: '[Release] perform release'
+        required: false
+        default: 'false'
+
+jobs:
+  check-permission:
+    runs-on: ubuntu-latest
+    steps:
+      # this action will fail the whole workflow if permission check fails
+      - name: check permission
+        uses: zowe-actions/shared-actions/permission-check@main
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+
+  update-changelog:
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    outputs:
+      was_updated: ${{ steps.check-change.outputs.change_detected }}
+      check_commit: ${{ steps.check-changelog.outputs.check_commit }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.head_ref }}
+          fetch-depth: 0
+
+      - name: Check for updated CHANGELOG.md using git
+        id: check-changelog
+        run: |
+          if git diff --name-only origin/${{ github.base_ref }} | grep -q "^CHANGELOG.md$"; then
+            echo "CHANGELOG.md has been updated."
+            echo "::set-output name=check_commit::true"
+          else
+            echo "ERROR: CHANGELOG.md has not been updated."
+            echo "::set-output name=check_commit::false"
+          fi
+
+      - name: check for changes
+        id: check-change
+        run: |
+          if git diff --name-only HEAD^ HEAD | grep 'changelog.md'; then
+            echo "No Changes detected, setting flag to false"
+            echo "::set-output name=change_detected::false"
+          else
+            echo "::set-output name=change_detected::true"
+            fi
+
+  check_changelog:
+    if: github.event_name == 'pull_request'
+    needs: update-changelog
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Verify Changelog update
+        run: |
+          if [ "${{ needs.update-changelog.outputs.was_updated }}" != "true" ]; then
+            echo "CHANGELOG.md not updated, please update CHANGELOG.md with the changes made in the pull request"
+            exit 1
+          else
+            echo "changelog was updated successfully."
+          fi
+
+  build-test:
+    runs-on: ubuntu-latest
+    needs: check-permission
+    steps: 
+      - name: '[Prep 1] Checkout'
+        uses: actions/checkout@v4
+
+      - name: '[Prep 2] Setup jFrog CLI'
+        uses: jfrog/setup-jfrog-cli@v2
+        env:
+          JF_ARTIFACTORY_1: ${{ secrets.JF_ARTIFACTORY_TOKEN }}
+
+      - name: '[Prep 3] Set date'
+        id: date
+        run: echo "date=$(date +'%Y%m%d%S')" >> $GITHUB_OUTPUT
+
+      - name: '[Prep 4] Set version'
+        id: version
+        run: |
+            echo "version=$(cat manifest.yml | grep version | cut -f 2 -d: | awk '{$1=$1};1')" >> $GITHUB_OUTPUT 
+
+      - name: '[Prep 5] Set branchname'
+        id: branch
+        run: echo "branch=$(if [ -n '${{ github.head_ref }}' ]; then echo '${{ github.head_ref }}' | tr '[:lower:]' '[:upper:]'; else echo '${{ github.ref_name }}' | tr '[:lower:]' '[:upper:]'; fi | sed 's@/@-@g')" >> $GITHUB_OUTPUT
+
+
+      - name: '[Prep 6] Prepare workflow'
+        uses: zowe-actions/shared-actions/prepare-workflow@main
+      
+
+      - name: '[Packaging] Make pax'
+        uses: zowe-actions/shared-actions/make-pax@main
+        with:
+          pax-name: 'keyring-util'
+          pax-options: '-x os390 -pp'
+          pax-local-workspace: './.pax'
+          pax-ssh-username: ${{ secrets.SSH_MARIST_USERNAME }}
+          pax-ssh-password: ${{ secrets.SSH_MARIST_RACF_PASSWORD }}
+
+      - name: '[Publish] Publish'
+        uses: zowe-actions/shared-actions/publish@main
+        if: success()
+        with:
+          artifacts: |
+            .pax/keyring-util.pax
+          publish-target-path-pattern: libs-snapshot-local/org/zowe/keyring-utilities/${{ steps.version.outputs.version }}-${{ steps.branch.outputs.branch }}
+          publish-target-file-pattern: keyring-util-${{ steps.version.outputs.version }}-${{ steps.date.outputs.date }}.pax
+          perform-release: ${{ github.event.inputs.PERFORM_RELEASE }}
+ 
+      - name: '[Prep Release] Bump version'
+        if: ${{ github.event.inputs.PERFORM_RELEASE == 'true' }}
+        uses: zowe-actions/shared-actions/bump-version@1200522c98e6db942d6f5e52267aec0fd120470a
+        with:
+          version: 'MINOR'
+        env: 
+         GITHUB_TOKEN: ${{ secrets.ZOWE_ROBOT_TOKEN }}

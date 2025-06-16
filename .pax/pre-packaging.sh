@@ -11,18 +11,14 @@ set -xe
 # Copyright Contributors to the Zowe Project.
 ################################################################################
 
-
-# contants
+# constants
 SCRIPT_NAME=$(basename "$0")
 SCRIPT_DIR=$(pwd)
 
 # build
 echo "$SCRIPT_NAME building keyring ..."
-export PYTHON_HOME=/usr/lpp/IBM/izoda/anaconda
-export PATH=$PATH:$PYTHON_HOME/bin
-export LIBPATH=$LIBPATH:$PYTHON_HOME/lib
 
-cd content/keyring-util
+cd content/build
 
 . ./build.sh
 
@@ -31,4 +27,4 @@ cd "$SCRIPT_DIR"
 
 mv content bk/
 mkdir -p content
-cp bk/keyring-util/keyring-util content/
+cp bk/build/keyring-util content/
