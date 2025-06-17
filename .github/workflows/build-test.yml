@@ -61,6 +61,8 @@ jobs:
         with:
           target-file: manifest.yaml
           metadata-format: YAML
+          branch-name: ${{ github.head_ref || '' }}
+
       - name: '[Packaging] Make pax'
         uses: zowe-actions/shared-actions/make-pax@main
         with:
