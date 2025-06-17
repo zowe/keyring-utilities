@@ -30,6 +30,8 @@ rm -fr "${PAX_WORKSPACE_DIR}/content" && mkdir -p "${PAX_WORKSPACE_DIR}/content"
 
 echo "[${SCRIPT_NAME}] copying files ..."
 cp -R * "${PAX_WORKSPACE_DIR}/ascii"
+mv "${PAX_WORKSPACE_DIR}/ascii/manifest.yaml" "${PAX_WORKSPACE_DIR}/content"
+
 # move files shouldn't change encoding to IBM-1047 to content folder
 rsync -rv \
   --include '*/' \

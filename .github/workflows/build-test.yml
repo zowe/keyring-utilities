@@ -27,57 +27,6 @@ jobs:
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
 
-  update-changelog:
-    if: github.event_name == 'pull_request'
-    runs-on: ubuntu-latest
-    outputs:
-      was_updated: ${{ steps.check-change.outputs.change_detected }}
-      check_commit: ${{ steps.check-changelog.outputs.check_commit }}
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-        with:
-          ref: ${{ github.head_ref }}
-          fetch-depth: 0
-
-      - name: Check for updated CHANGELOG.md using git
-        id: check-changelog
-        run: |
-          if git diff --name-only origin/${{ github.base_ref }} | grep -q "^CHANGELOG.md$"; then
-            echo "CHANGELOG.md has been updated."
-            echo "::set-output name=check_commit::true"
-          else
-            echo "ERROR: CHANGELOG.md has not been updated."
-            echo "::set-output name=check_commit::false"
-          fi
-
-      - name: check for changes
-        id: check-change
-        run: |
-          if git diff --name-only HEAD^ HEAD | grep 'changelog.md'; then
-            echo "No Changes detected, setting flag to false"
-            echo "::set-output name=change_detected::false"
-          else
-            echo "::set-output name=change_detected::true"
-            fi
-
-  check_changelog:
-    if: github.event_name == 'pull_request'
-    needs: update-changelog
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Verify Changelog update
-        run: |
-          if [ "${{ needs.update-changelog.outputs.was_updated }}" != "true" ]; then
-            echo "CHANGELOG.md not updated, please update CHANGELOG.md with the changes made in the pull request"
-            exit 1
-          else
-            echo "changelog was updated successfully."
-          fi
-
   build-test:
     runs-on: ubuntu-latest
     needs: check-permission
@@ -97,7 +46,7 @@ jobs:
       - name: '[Prep 4] Set version'
         id: version
         run: |
-            echo "version=$(cat manifest.yml | grep version | cut -f 2 -d: | awk '{$1=$1};1')" >> $GITHUB_OUTPUT 
+            echo "version=$(cat manifest.yaml | grep version | cut -f 2 -d: | awk '{$1=$1};1')" >> $GITHUB_OUTPUT 
 
       - name: '[Prep 5] Set branchname'
         id: branch
@@ -106,7 +55,13 @@ jobs:
 
       - name: '[Prep 6] Prepare workflow'
         uses: zowe-actions/shared-actions/prepare-workflow@main
-      
+
+      - name: '[Prep 7] Embed build metadata'
+        uses: zowe-actions/shared-actions/embed-metadata@main
+        with:
+          target-file: manifest.yaml
+          metadata-format: YAML
+          branch-name: ${{ github.head_ref || '' }}
 
       - name: '[Packaging] Make pax'
         uses: zowe-actions/shared-actions/make-pax@main

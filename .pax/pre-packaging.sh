@@ -28,3 +28,4 @@ cd "$SCRIPT_DIR"
 mv content bk/
 mkdir -p content
 cp bk/build/keyring-util content/
+cp bk/manifest.yaml content/
