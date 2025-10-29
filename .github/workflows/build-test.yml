@@ -78,7 +78,7 @@ jobs:
         with:
           artifacts: |
             .pax/keyring-util.pax
-          publish-target-path-pattern: org/zowe/keyring-utilities/{version}{branchtag-uc}/
+          publish-target-path-pattern: "{repository}/org/zowe/keyring-utilities/{version}{branchtag-uc}/"
           perform-release: ${{ github.event.inputs.PERFORM_RELEASE }}
  
       - name: '[Prep Release] Bump version'
