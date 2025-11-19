@@ -58,9 +58,16 @@ keyring-util function userid keyring label
   * `EXPORT` - exports a certificate in PEM format. The file is created in a `pwd` directory with a name of `<cert_alias>.pem`
     - Supported Arguments:
         * `-l <label>`: Required. Specifies the certificate to be exported by label.
+        * `-f </path/to/output>`: Required. Specifies where to write out the exported certificate.
+        * `-k`: Optional. Attempts to export the private key in a password-protected binary format (`.p12`).
+          * `-p`: Required and only used with `-k`. Specifies the password that protects the exported binary `.p12`.
 
-    - Example: `keyring-util EXPORT USER01 RING02 -l CERT03`
+    - Example: `keyring-util EXPORT USER01 RING02 -l CERT03 -f ./CERT03.pem`
         * Creates a file CERT03.pem.
+    - Example: `keyring-util EXPORT USER01 RING02 -l CERT03 -k -f ./CERT03.p12 -p mypass`
+        * Creates a file CERT03.p12 which requires `mypass` to open.
+
+    - **NOTE**: The export command can only export private keys when certain security requirements are met. More [information can be found here](https://www.ibm.com/docs/en/zos/3.1.0?topic=library-usage-notes#usgntrdata), section 4 (key for `private key`). Notably, on any security failure, GSK will return `53817370` which is `CMSERR_NO_PRIVATE_KEY`. This can be misleading.
          
   * `IMPORT` - imports a certificate from the PKCS12 format. The certificate can be connected to a keyring as `PERSONAL` or `CERTAUTH`.
     - Supported Arguments:
