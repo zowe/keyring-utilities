@@ -369,9 +369,9 @@ void list_certificate_summary(Certificate_summary *summary, Command_line_parms* 
     }
     if (print_this_cert) {
         if (params->print_label_only) {
-            printf("Certificate: %s\n", summary->label); 
+            printf("%s\n", summary->label); 
         } else if (params->print_owner_only) {
-            printf("Owner: %s\n", summary->userid);
+            printf("%s\n", summary->userid);
         } else {
             printf("Certificate: %s\n", summary->label); 
             printf("Owner: %s\n", summary->userid);
@@ -456,7 +456,9 @@ void listring_action(R_datalib_parm_list_64* rdatalib_parms, void * function, Co
     dataAbort.handle = &handle;
     set_up_R_datalib_parameters(&parms, &abortFunc, userid, keyring);
     invoke_R_datalib(&parms);
-    printf("Summary of certificates:\n");
+    if (!params->print_label_only && !params->print_owner_only) {
+        printf("Summary of certificates:\n");
+    }
     for (int j = 0; j < i; j++) {
         list_certificate_summary(summary_list[j], params);
         free(summary_list[j]);
