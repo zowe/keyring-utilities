@@ -1,5 +1,9 @@
 # Keyring-Utilities Changelog
 
+## `3.2.0`
+
+- `--label-only` and `--owner-only` flags no longer print summary header, and only print certificate content. [#21](https://github.com/zowe/keyring-utilities/pull/21)
+
 ## `3.0.0`
 
 - Added manifest.yaml to PAX file which includes build metadata (#18)
