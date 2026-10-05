@@ -1,5 +1,9 @@
 # Keyring-Utilities Changelog
 
+## `3.6.0`
+
+- Bugfix: Fixed potential buffer overrun when exporting large certificates and private keys. [#24](https://github.com/zowe/keyring-utilities/pull/24)
+
 ## `3.2.0`
 
 - `--label-only` and `--owner-only` flags no longer print summary header, and only print certificate content. [#21](https://github.com/zowe/keyring-utilities/pull/21)
