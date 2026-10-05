@@ -1,5 +1,9 @@
 # Keyring-Utilities Changelog
 
+## `3.6.0`
+
+- Enhancement: the exported private key file is always created in mode 600 so that only the creator has access to it by default. [#25](https://github.com/zowe/keyring-utilities/pull/25)
+
 ## `3.2.0`
 
 - `--label-only` and `--owner-only` flags no longer print summary header, and only print certificate content. [#21](https://github.com/zowe/keyring-utilities/pull/21)
