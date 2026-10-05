@@ -565,11 +565,22 @@ void write_to_file(char *filename, char *ptr, int len, int isPrivate) {
     gsk_buffer buf_out = {0, 0};
     gsk_status rc;
 
+    // we should refuse to update existing files, not only to avoid human operational
+    // errors, but also to ensure the private key file is created in expected mode
+    struct stat buffer;
+    if (stat(filename, &buffer) == 0) {
+        printf("%s already exists.\n", filename);
+        return;
+    }
+
     if (isPrivate) {
+        mode_t old_mask = umask(0077); // private means private
         if ((stream = fopen(filename, "wb")) == NULL) {
+            umask(old_mask);
             printf("Could not open %s file.\n", filename);
             return;
         }
+        umask(old_mask);
         numwritten = fwrite(buf_in.data, sizeof(char), buf_in.length, stream);
 
     } else {
