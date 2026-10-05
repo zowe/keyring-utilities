@@ -24,6 +24,10 @@
 #define PRIVATE_HEADER "-----BEGIN PRIVATE KEY-----\n"
 #define PRIVATE_FOOTER "-----END PRIVATE KEY-----\n"
 
+#ifndef min
+#define min(a, b) ((a) > (b) ? (b) : (a))
+#endif
+
 // set by env or command line argument
 int debug = 0;
 
@@ -123,7 +127,7 @@ void get_data(char *userid, char *keyring, char *label, char* optional_password,
 
     if (rc == 0) {
         memcpy(&buffers->certificate_length, &stream.length, sizeof(stream.length));
-        memcpy(buffers->certificate, stream.data, stream.length);
+        memcpy(buffers->certificate, stream.data, min(sizeof(buffers->certificate), stream.length));
         memcpy(buffers->label, label, strlen(label));
     } else {
         printf("Could not find certificate %s: GSK rc = %X\n", label, rc);
@@ -142,13 +146,13 @@ void get_data(char *userid, char *keyring, char *label, char* optional_password,
 
     if (rc == 0) {
         memcpy(&buffers->private_key_length, &key_stream.length, sizeof(key_stream.length));
-        memcpy(buffers->private_key, key_stream.data, key_stream.length);
+        memcpy(buffers->private_key, key_stream.data, min(sizeof(buffers->private_key), key_stream.length));
     } // not all certs have the private key attached, don't fail if it's not there
 
     if (debug) {
         printf("gsk_export_key returned %d, size=%d\n", rc, key_stream.length);
     }    
-    
+
     gsk_free_buffer(&key_stream);
     gsk_close_database(&handle);
 }
@@ -551,9 +555,15 @@ void dump_certificate_and_key(Data_get_buffers *buffers, Command_line_parms* par
     }
 
     if (parms->export_key) {    
-        write_to_file(filename, buffers->private_key, buffers->private_key_length, TRUE);
+        if (buffers->private_key_length > sizeof(buffers->private_key)) {
+            printf("Warning: the returned private key is too big (%d bytes) and will be truncated\n", buffers->private_key_length);
+        }
+        write_to_file(filename, buffers->private_key, min(sizeof(buffers->private_key), buffers->private_key_length), TRUE);
     } else {
-        write_to_file(filename, buffers->certificate, buffers->certificate_length, FALSE);
+        if (buffers->certificate_length > sizeof(buffers->certificate)) {
+            printf("Warning: the returned certificate is too big (%d bytes) and will be truncated\n", buffers->certificate_length);
+        }
+        write_to_file(filename, buffers->certificate, min(sizeof(buffers->certificate), buffers->certificate_length), FALSE);
     }
 }
 
