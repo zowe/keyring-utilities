@@ -541,7 +541,7 @@ void delcert_action(R_datalib_parm_list_64* rdatalib_parms, void * function, Com
 
 void dump_certificate_and_key(Data_get_buffers *buffers, Command_line_parms* parms) {
     char filename[40];
-    memset(filename, 0, strlen(filename));
+    memset(filename, 0, sizeof(filename));
 
     if (strlen(parms->file_path) > 0) {
         strcpy(filename, parms->file_path);
@@ -570,7 +570,7 @@ void write_to_file(char *filename, char *ptr, int len, int isPrivate) {
     struct stat buffer;
     if (stat(filename, &buffer) == 0) {
         printf("%s already exists.\n", filename);
-        return;
+        exit(1);
     }
 
     if (isPrivate) {
@@ -578,7 +578,7 @@ void write_to_file(char *filename, char *ptr, int len, int isPrivate) {
         if ((stream = fopen(filename, "wb")) == NULL) {
             umask(old_mask);
             printf("Could not open %s file.\n", filename);
-            return;
+            exit(1);
         }
         umask(old_mask);
         numwritten = fwrite(buf_in.data, sizeof(char), buf_in.length, stream);
@@ -589,7 +589,7 @@ void write_to_file(char *filename, char *ptr, int len, int isPrivate) {
     
         if ((stream = fopen(filename, "w")) == NULL) {
             printf("Could not open %s file.\n", filename);
-            return;
+            exit(1);
         }
     
         fprintf(stream, CERTIFICATE_HEADER);
