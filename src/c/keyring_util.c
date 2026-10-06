@@ -94,7 +94,7 @@ int main(int argc, char **argv)
     return 0;
 }
 
-void get_data(char *userid, char *keyring, char *label, char* optional_password, Data_get_buffers *buffers, Return_codes *ret) {
+void get_data(char *userid, char *keyring, char *label, char* optional_password, int privkey_old_alg, Data_get_buffers *buffers, Return_codes *ret) {
 
     gsk_handle handle;
     int num_records;
@@ -138,7 +138,7 @@ void get_data(char *userid, char *keyring, char *label, char* optional_password,
     if (optional_password!= NULL && strlen(optional_password) > 0) {
         pass = optional_password;
     }
-    rc = gsk_export_key(handle, label, gskdb_export_pkcs12v3_binary, x509_alg_pbeWithSha1And128BitRc4, pass, &key_stream);
+    rc = gsk_export_key(handle, label, gskdb_export_pkcs12v3_binary, privkey_old_alg ? x509_alg_pbeWithSha1And128BitRc4 : x509_alg_pbes2WithSha256AndAesCbc256, pass, &key_stream);
 
     if (rc == 0) {
         memcpy(&buffers->private_key_length, &key_stream.length, sizeof(key_stream.length));
@@ -482,7 +482,7 @@ void getcert_action(R_datalib_parm_list_64* rdatalib_parms, void * function, Com
     memset(&ret_codes, 0, sizeof(Return_codes));
     memset(&buffers, 0, sizeof(Data_get_buffers));
 
-    get_data(parms->userid, parms->keyring, parms->label, parms->file_password, &buffers, &ret_codes);
+    get_data(parms->userid, parms->keyring, parms->label, parms->file_password, parms->export_key_old_alg, &buffers, &ret_codes);
 
     if (ret_codes.SAF_return_code != 0) {
         printf("R_datalib call failed: function code: %.2X, SAF rc: %d, RACF rc: %d, RACF rsn: %d\n",
@@ -646,6 +646,8 @@ void process_cmdline_parms(Command_line_parms* parms, int argc, char** argv) {
             parms->print_label_only = 1;
         } else if (strcmp(argv[argx], "-k") == 0) {
             parms->export_key = 1;
+        } else if (strcmp(argv[argx], "-c") == 0) {
+            parms->export_key_old_alg = 1;
         } else if (strcmp(argv[argx], "--owner-only") == 0) {
             parms->print_owner_only = 1;
         } else if (strcmp(argv[argx], "--help") == 0) {
@@ -670,7 +672,7 @@ void print_help(R_datalib_parm_list_64* rdatalib_parms, void * function, Command
     printf("NEWRING - creates a new keyring. args: none\n");
     printf("DELRING - deletes a keyring. args: none\n");
     printf("DELCERT - disconnects a certificate (label) from a keyring or deletes a certificate from RACF database. args: -l <label>\n");
-    printf("EXPORT  - exports a certificate from a keyring to a PEM file. args: -l <label>. optional: -k, -f <path/to/file/out> -p <password>\n");
+    printf("EXPORT  - exports a certificate from a keyring to a PEM file. args: -l <label>. optional: -k (to export private key), -c (to use old RC4/SHA-1 algorithm), -f <path/to/file/out> -p <password>\n");
     printf("IMPORT  - imports a certificate (with a private key if present) to a keyring from PKCS12 file. args: -l <label>, -f <path/to/pkcs12>, -p <pkcs12-password> -u <usage>\n");
     printf("REFRESH - refreshes DIGTCERT class\n");
     printf("HELP    - prints this help\n");

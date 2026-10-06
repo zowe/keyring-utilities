@@ -49,6 +49,7 @@ typedef struct _Command_line_parms {
     char file_path[MAX_EXTRA_ARG_LEN];
     char file_password[MAX_EXTRA_ARG_LEN];
     int export_key;
+    int export_key_old_alg;
     int print_label_only;
     int print_owner_only;
 } Command_line_parms;

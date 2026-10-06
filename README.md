@@ -61,6 +61,9 @@ keyring-util function userid keyring label
         * `-f </path/to/output>`: Required. Specifies where to write out the exported certificate.
         * `-k`: Optional. Attempts to export the private key in a password-protected binary format (`.p12`).
           * `-p`: Required and only used with `-k`. Specifies the password that protects the exported binary `.p12`.
+        * `-c`: Optional. With this flag, the exported private key will be encrypted using **128-bit RC4 with SHA-1 digest** for compatibility with legacy systems. Otherwise, the newer **256-bit AES-CBC with SHA-256 digest and PBKDF2 HMAC SHA-256** algorithm will be used by default.
+
+        > Prerequisite: Using the default AES-256 algorithm requires APAR [OA64899](https://www.ibm.com/support/pages/apar/OA64899) to be installed.
 
     - Example: `keyring-util EXPORT USER01 RING02 -l CERT03 -f ./CERT03.pem`
         * Creates a file CERT03.pem.
