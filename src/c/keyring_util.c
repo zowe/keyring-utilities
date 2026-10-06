@@ -540,7 +540,7 @@ void delcert_action(R_datalib_parm_list_64* rdatalib_parms, void * function, Com
 }
 
 void dump_certificate_and_key(Data_get_buffers *buffers, Command_line_parms* parms) {
-    char filename[40];
+    char filename[MAX_USS_PATH + 1];
     memset(filename, 0, sizeof(filename));
 
     if (strlen(parms->file_path) > 0) {
@@ -648,7 +648,7 @@ void process_cmdline_parms(Command_line_parms* parms, int argc, char** argv) {
         } else if (strcmp(argv[argx], "-f") == 0) {
             optionValue = argv[++argx];
             require_option_value("-f", optionValue);
-            validate_and_set_parm(parms->file_path, optionValue, MAX_EXTRA_ARG_LEN);
+            validate_and_set_parm(parms->file_path, optionValue, MAX_USS_PATH);
         } else if (strcmp(argv[argx], "-p") == 0) {
             optionValue = argv[++argx];
             require_option_value("-p", optionValue);
