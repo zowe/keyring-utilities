@@ -24,6 +24,7 @@
 #define MAX_SUBJECT_DN_LEN 2*1024   // may be adjusted
 #define MAX_RECORD_ID_LEN 246
 #define MAX_EXTRA_ARG_LEN 256       // may be adjusted
+#define MAX_USS_PATH 1023
 
 #define GETCERT_CODE 0x01
 #define GETNEXT_CODE 0x02
@@ -46,7 +47,7 @@ typedef struct _Command_line_parms {
     char keyring[MAX_KEYRING_LEN + 1];
     char label[MAX_LABEL_LEN + 1];
     char usage[MAX_USAGE_LEN + 1];
-    char file_path[MAX_EXTRA_ARG_LEN];
+    char file_path[MAX_USS_PATH + 1];
     char file_password[MAX_EXTRA_ARG_LEN];
     int export_key;
     int print_label_only;

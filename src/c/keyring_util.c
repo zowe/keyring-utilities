@@ -540,8 +540,8 @@ void delcert_action(R_datalib_parm_list_64* rdatalib_parms, void * function, Com
 }
 
 void dump_certificate_and_key(Data_get_buffers *buffers, Command_line_parms* parms) {
-    char filename[40];
-    memset(filename, 0, strlen(filename));
+    char filename[MAX_USS_PATH + 1];
+    memset(filename, 0, sizeof(filename));
 
     if (strlen(parms->file_path) > 0) {
         strcpy(filename, parms->file_path);
@@ -565,11 +565,22 @@ void write_to_file(char *filename, char *ptr, int len, int isPrivate) {
     gsk_buffer buf_out = {0, 0};
     gsk_status rc;
 
+    // we should refuse to update existing files, not only to avoid human operational
+    // errors, but also to ensure the private key file is created in expected mode
+    struct stat buffer;
+    if (stat(filename, &buffer) == 0) {
+        printf("%s already exists.\n", filename);
+        exit(1);
+    }
+
     if (isPrivate) {
+        mode_t old_mask = umask(0077); // private means private
         if ((stream = fopen(filename, "wb")) == NULL) {
+            umask(old_mask);
             printf("Could not open %s file.\n", filename);
-            return;
+            exit(1);
         }
+        umask(old_mask);
         numwritten = fwrite(buf_in.data, sizeof(char), buf_in.length, stream);
 
     } else {
@@ -578,7 +589,7 @@ void write_to_file(char *filename, char *ptr, int len, int isPrivate) {
     
         if ((stream = fopen(filename, "w")) == NULL) {
             printf("Could not open %s file.\n", filename);
-            return;
+            exit(1);
         }
     
         fprintf(stream, CERTIFICATE_HEADER);
@@ -637,7 +648,7 @@ void process_cmdline_parms(Command_line_parms* parms, int argc, char** argv) {
         } else if (strcmp(argv[argx], "-f") == 0) {
             optionValue = argv[++argx];
             require_option_value("-f", optionValue);
-            validate_and_set_parm(parms->file_path, optionValue, MAX_EXTRA_ARG_LEN);
+            validate_and_set_parm(parms->file_path, optionValue, MAX_USS_PATH);
         } else if (strcmp(argv[argx], "-p") == 0) {
             optionValue = argv[++argx];
             require_option_value("-p", optionValue);
