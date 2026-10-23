@@ -2,7 +2,8 @@
 
 ## `3.6.0`
 
-- Bugfix: Fixed potential buffer overrun when exporting large certificates and private keys. [#24](https://github.com/zowe/keyring-utilities/pull/24)
+- Bugfix: Fixed potential buffer overrun when exporting a certificate larger than 64 KB or a private key larger than 8 KB. `EXPORT` now exits with an error (code 1) in such case. [#24](https://github.com/zowe/keyring-utilities/pull/24)
+
 
 ## `3.2.0`
 
