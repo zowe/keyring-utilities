@@ -556,12 +556,14 @@ void dump_certificate_and_key(Data_get_buffers *buffers, Command_line_parms* par
 
     if (parms->export_key) {    
         if (buffers->private_key_length > sizeof(buffers->private_key)) {
-            printf("Warning: the returned private key is too big (%d bytes) and will be truncated\n", buffers->private_key_length);
+            printf("Error: the returned private key is too big (%d bytes) to be exported\n", buffers->private_key_length);
+            exit(1);
         }
         write_to_file(filename, buffers->private_key, min(sizeof(buffers->private_key), buffers->private_key_length), TRUE);
     } else {
         if (buffers->certificate_length > sizeof(buffers->certificate)) {
-            printf("Warning: the returned certificate is too big (%d bytes) and will be truncated\n", buffers->certificate_length);
+            printf("Error: the returned certificate is too big (%d bytes) to be exported\n", buffers->certificate_length);
+            exit(1);
         }
         write_to_file(filename, buffers->certificate, min(sizeof(buffers->certificate), buffers->certificate_length), FALSE);
     }
